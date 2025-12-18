@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AIObservabilityAndEvaluationWorkshop.AppHost/AIObservabilityAndEvaluationWorkshop.AppHost.csproj" />
+  <Project Path="AIObservabilityAndEvaluationWorkshop.ServiceDefaults/AIObservabilityAndEvaluationWorkshop.ServiceDefaults.csproj" />
+  <Project Path="ConsoleRunner/AIObservabilityAndEvaluationWorkshop.ConsoleRunner.csproj" />
+</Solution>
