@@ -1,13 +1,14 @@
 #pragma warning disable ASPIREINTERACTION001 // Interaction Service is for evaluation purposes only
-using Aspire.Hosting;
-using Aspire.Hosting.Eventing;
+
 using Microsoft.Extensions.DependencyInjection;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add the console app project (without WithExplicitStart so it doesn't auto-start)
-var consoleAppBuilder = builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app");
+IResourceBuilder<ProjectResource> consoleAppBuilder = 
+    builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app")
+        .WithExplicitStart();
 
 // Subscribe to AfterResourcesCreatedEvent to prompt for input after dashboard is ready
 builder.Eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, cancellationToken) =>
@@ -39,34 +40,16 @@ builder.Eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, cancellati
 
     var message = result.Data?.Value ?? "Hello, World!";
 
-    // Launch the console app with the message as command line arguments
-    try
-    {
-        // Construct the path to the console app DLL
-        var appHostDir = AppContext.BaseDirectory;
-        var solutionDir = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", ".."));
-        var consoleAppDll = Path.Combine(solutionDir, "ConsoleRunner", "bin", "Debug", "net10.0", "AIObservabilityAndEvaluationWorkshop.ConsoleRunner.dll");
-
-        var startInfo = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = "dotnet",
-            Arguments = $"\"{consoleAppDll}\" --message \"{message}\"",
-            UseShellExecute = true
-        };
-
-        System.Diagnostics.Process.Start(startInfo);
-    }
-    catch (Exception ex)
-    {
-        await interactionService.PromptNotificationAsync("Error",
-            $"Failed to launch console app: {ex.Message}");
-        return;
-    }
+    // Configure the console app to run with the display command and message
+    consoleAppBuilder.WithArgs("display", message);
 
     // Show a notification with the message
     await interactionService.PromptNotificationAsync("Input Received",
-        $"You entered: {message}. " +
-        "The console app has been launched with this message.");
+        $"You entered: '{message}'. The app can now be started from the dashboard.", new NotificationInteractionOptions()
+        {
+            Intent = MessageIntent.Information,
+            ShowSecondaryButton = false,
+        });
 });
 
 builder.Build().Run();
