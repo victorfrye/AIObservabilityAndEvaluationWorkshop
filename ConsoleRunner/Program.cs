@@ -1,24 +1,24 @@
-﻿// The console app receives the user input as a command-line argument from the AppHost.
+// The console app receives the user input as a command-line argument from the AppHost.
 // The AppHost uses IInteractionService to prompt the user, then passes the result here.
+using Microsoft.Extensions.CommandLineUtils;
+
 public partial class Program
 {
     public static int Main(string[] args)
     {
-        var message = "Hello, World!"; // Default value
+        var app = new CommandLineApplication();
+        app.Name = "ConsoleRunner";
+        app.Description = "Console application that displays a message";
 
-        // Parse command-line arguments to get the message
-        for (int i = 0; i < args.Length; i++)
+        var messageOption = app.Option("-m|--message <MESSAGE>", "The message to display", CommandOptionType.SingleValue);
+
+        app.OnExecute(() =>
         {
-            if (args[i] == "--message" && i + 1 < args.Length)
-            {
-                message = args[i + 1];
-                break;
-            }
-        }
+            var message = messageOption.Value() ?? "Hello, World!";
+            Console.WriteLine(message);
+            return 0;
+        });
 
-        // Log the message to the console
-        Console.WriteLine(message);
-
-        return 0;
+        return app.Execute(args);
     }
 }

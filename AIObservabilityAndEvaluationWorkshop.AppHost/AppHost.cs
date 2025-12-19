@@ -7,7 +7,7 @@ using Projects;
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add the console app project (without WithExplicitStart so it doesn't auto-start)
-var consoleApp = builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app");
+var consoleAppBuilder = builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app");
 
 // Subscribe to AfterResourcesCreatedEvent to prompt for input after dashboard is ready
 builder.Eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, cancellationToken) =>
@@ -20,7 +20,7 @@ builder.Eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, cancellati
     }
 
     // Prompt the user for input
-    var result = await interactionService.PromptInputAsync(
+    InteractionResult<InteractionInput> result = await interactionService.PromptInputAsync(
         title: "User Input",
         message: "Please enter some text:",
         input: new InteractionInput
@@ -38,14 +38,35 @@ builder.Eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, cancellati
     }
 
     var message = result.Data?.Value ?? "Hello, World!";
-    
+
+    // Launch the console app with the message as command line arguments
+    try
+    {
+        // Construct the path to the console app DLL
+        var appHostDir = AppContext.BaseDirectory;
+        var solutionDir = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", ".."));
+        var consoleAppDll = Path.Combine(solutionDir, "ConsoleRunner", "bin", "Debug", "net10.0", "AIObservabilityAndEvaluationWorkshop.ConsoleRunner.dll");
+
+        var startInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "dotnet",
+            Arguments = $"\"{consoleAppDll}\" --message \"{message}\"",
+            UseShellExecute = true
+        };
+
+        System.Diagnostics.Process.Start(startInfo);
+    }
+    catch (Exception ex)
+    {
+        await interactionService.PromptNotificationAsync("Error",
+            $"Failed to launch console app: {ex.Message}");
+        return;
+    }
+
     // Show a notification with the message
-    await interactionService.PromptNotificationAsync("Input Received", 
+    await interactionService.PromptNotificationAsync("Input Received",
         $"You entered: {message}. " +
-        "You can now start the console-app resource from the dashboard, and it will use this message.");
-    
-    // Note: To actually execute the console app programmatically, you would need to
-    // use a custom resource command. For now, the user can start it manually from the dashboard.
+        "The console app has been launched with this message.");
 });
 
 builder.Build().Run();
