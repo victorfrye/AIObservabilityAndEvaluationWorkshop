@@ -11,4 +11,8 @@
     <ProjectReference Include="..\AIObservabilityAndEvaluationWorkshop.ServiceDefaults\AIObservabilityAndEvaluationWorkshop.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" Version="13.1.0" />
+  </ItemGroup>
+
 </Project>
