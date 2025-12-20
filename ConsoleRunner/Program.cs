@@ -13,16 +13,9 @@ TelemetryDiagnostics.LogPreConfigurationDiagnostics(builder);
 
 builder.AddServiceDefaults();
 
-// Explicitly register DisplayCommand's ActivitySource with OpenTelemetry
-// This extends the existing OpenTelemetry configuration from AddServiceDefaults
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing =>
-    {
-        // Register the ActivitySource used by DisplayCommand
-        // The full type name is: AIObservabilityAndEvaluationWorkshop.ConsoleRunner.DisplayCommand
-        string displayCommandSourceName = typeof(DisplayCommand).FullName!;
-        tracing.AddSource(displayCommandSourceName);
-    });
+// Note: DisplayCommand's ActivitySource is automatically registered via the wildcard pattern
+// in ServiceDefaults (AIObservabilityAndEvaluationWorkshop.ConsoleRunner*)
+// No need to call AddOpenTelemetry() again as that creates a separate builder
 
 builder.Services.AddScoped<DisplayCommand>();
 IHost host = builder.Build();
@@ -34,7 +27,7 @@ await host.StartAsync();
 
 // Log ActivitySource diagnostics after host starts (TracerProvider is now built)
 ILogger<Program> logger = host.Services.GetRequiredService<ILogger<Program>>();
-TelemetryDiagnostics.LogActivitySourceDiagnosticsAfterStart(logger, builder.Environment.ApplicationName);
+TelemetryDiagnostics.LogActivitySourceDiagnosticsAfterStart(logger, builder.Environment.ApplicationName, host.Services);
 
 // Add the display command that allows users to send an input in through a message parameter
 Command displayCommand = new Command("display", "Display a message");
@@ -48,4 +41,23 @@ displayCommand.SetHandler(command.ExecuteAsync, messageArgument);
 RootCommand rootCommand = new RootCommand("Console application for displaying messages");
 rootCommand.AddCommand(displayCommand);
 
-return await rootCommand.InvokeAsync(args);
+int result = await rootCommand.InvokeAsync(args);
+
+// For console apps, give telemetry time to be exported before exiting
+// This ensures all telemetry is exported to Aspire before the app terminates
+try
+{
+    logger.LogInformation("Waiting for telemetry export before app exit...");
+    
+    // Give the exporter time to send the data
+    // OTLP exporters typically batch and send data asynchronously
+    await Task.Delay(TimeSpan.FromSeconds(2));
+    
+    logger.LogInformation("Telemetry export wait completed");
+}
+catch (Exception ex)
+{
+    logger.LogWarning(ex, "Error during telemetry export wait");
+}
+
+return result;

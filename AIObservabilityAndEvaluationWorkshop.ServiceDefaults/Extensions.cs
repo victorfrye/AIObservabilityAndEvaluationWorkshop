@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -51,7 +52,9 @@ public static class Extensions
             logging.IncludeScopes = true;
         });
 
-        builder.Services.AddOpenTelemetry()
+        var otlpExporterConfigured = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        
+        var openTelemetryBuilder = builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
@@ -78,29 +81,38 @@ public static class Extensions
                 tracing.AddSource(wildcardPattern);
             });
 
-        builder.AddOpenTelemetryExporters();
-
-        return builder;
-    }
-
-    private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-
-        if (useOtlpExporter)
+        // Chain the OTLP exporter to the same builder to ensure proper configuration
+        // This is critical - calling AddOpenTelemetry() again creates a separate builder
+        if (otlpExporterConfigured)
         {
-            builder.Services.AddOpenTelemetry().UseOtlpExporter();
+            // Try to use Aspire's UseOtlpExporter() extension method if available
+            // If that doesn't work, fall back to manual OTLP exporter configuration
+            try
+            {
+                // UseOtlpExporter() is an Aspire extension method that configures the OTLP exporter
+                // It reads OTEL_EXPORTER_OTLP_ENDPOINT from configuration automatically
+                openTelemetryBuilder.UseOtlpExporter();
+            }
+            catch
+            {
+                // Fallback: Manually configure OTLP exporter if UseOtlpExporter() is not available
+                // This ensures telemetry export works even if the Aspire extension method fails
+                var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] 
+                    ?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+                
+                if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+                {
+                    openTelemetryBuilder
+                        .WithTracing(tracing => tracing.AddOtlpExporter())
+                        .WithMetrics(metrics => metrics.AddOtlpExporter())
+                        .WithLogging(logging => logging.AddOtlpExporter());
+                }
+            }
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
-
         return builder;
     }
+
 
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {

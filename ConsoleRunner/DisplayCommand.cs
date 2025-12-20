@@ -13,8 +13,10 @@ public class DisplayCommand(ILogger<DisplayCommand> logger)
 
     public Task ExecuteAsync(string message)
     {
-        using Activity? activity = _activitySource.StartActivity();
+        // Create a named activity for better trace visibility
+        using Activity? activity = _activitySource.StartActivity("DisplayCommand.Execute");
         activity?.SetTag("message", message);
+        activity?.SetTag("command.name", "display");
 
         logger.LogInformation("Displaying message: {Message}", message);
 

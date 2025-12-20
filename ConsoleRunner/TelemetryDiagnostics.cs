@@ -101,11 +101,62 @@ public static class TelemetryDiagnostics
     /// Logs ActivitySource diagnostics after the host has started.
     /// This should be called after host.StartAsync() to ensure the TracerProvider is built.
     /// </summary>
-    public static void LogActivitySourceDiagnosticsAfterStart(ILogger logger, string applicationName)
+    public static void LogActivitySourceDiagnosticsAfterStart(ILogger logger, string applicationName, IServiceProvider serviceProvider)
     {
         logger.LogInformation("=== ActivitySource Diagnostics (After Host Start) ===");
         LogActivitySourceDiagnostics(logger, applicationName);
+        
+        // Check if OTLP exporter is actually registered
+        LogOtlpExporterDiagnostics(logger, serviceProvider);
+        
         logger.LogInformation("=== End ActivitySource Diagnostics ===");
+    }
+
+    /// <summary>
+    /// Logs diagnostic information about the OTLP exporter configuration.
+    /// </summary>
+    private static void LogOtlpExporterDiagnostics(ILogger logger, IServiceProvider serviceProvider)
+    {
+        logger.LogInformation("--- OTLP Exporter Diagnostics ---");
+        
+        // Check if TracerProvider is registered
+        try
+        {
+            // Try to get the TracerProvider from the service provider
+            // Note: TracerProvider might not be directly accessible, but we can check for related services
+            var tracerProvider = serviceProvider.GetService(typeof(global::OpenTelemetry.Trace.TracerProvider));
+            if (tracerProvider != null)
+            {
+                logger.LogInformation("TracerProvider is registered in DI container");
+            }
+            else
+            {
+                logger.LogWarning("TracerProvider is NOT found in DI container - this might indicate a configuration issue");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not check TracerProvider registration");
+        }
+        
+        // Check OTLP endpoint again
+        string? otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+        logger.LogInformation("OTLP Endpoint: {Endpoint}", otlpEndpoint ?? "(NOT SET)");
+        
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        {
+            logger.LogInformation(
+                "OTLP exporter should be active. " +
+                "If telemetry is not appearing in Aspire dashboard, check:\n" +
+                "1. Aspire dashboard is running and accessible at {Endpoint}\n" +
+                "2. Check Aspire dashboard logs for OTLP connection errors\n" +
+                "3. Verify the endpoint URL is correct (should be https://localhost:21023 for Aspire)\n" +
+                "4. Check if there are SSL/certificate issues with the HTTPS endpoint\n" +
+                "5. Console apps may need explicit flushing - try adding a delay before app exits",
+                otlpEndpoint);
+        }
+        
+        logger.LogInformation("--- End OTLP Exporter Diagnostics ---");
     }
 
     /// <summary>
