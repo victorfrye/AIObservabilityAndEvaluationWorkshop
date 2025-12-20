@@ -58,6 +58,7 @@ public static class TelemetryDiagnostics
 
     /// <summary>
     /// Logs telemetry configuration status after services are configured and host is built.
+    /// Note: ActivitySource listeners are only available after the host has started and the TracerProvider is built.
     /// </summary>
     public static void LogPostConfigurationDiagnostics(IHost host, HostApplicationBuilder builder)
     {
@@ -92,10 +93,19 @@ public static class TelemetryDiagnostics
             logger.LogInformation("OTLP exporter should be active. Check Aspire dashboard for telemetry.");
         }
         
-        // Check ActivitySource registration
-        LogActivitySourceDiagnostics(logger, builder.Environment.ApplicationName);
-        
         logger.LogInformation("=== End Post-Configuration Status ===");
+        logger.LogInformation("Note: ActivitySource diagnostics will be logged after host starts (TracerProvider must be built first).");
+    }
+
+    /// <summary>
+    /// Logs ActivitySource diagnostics after the host has started.
+    /// This should be called after host.StartAsync() to ensure the TracerProvider is built.
+    /// </summary>
+    public static void LogActivitySourceDiagnosticsAfterStart(ILogger logger, string applicationName)
+    {
+        logger.LogInformation("=== ActivitySource Diagnostics (After Host Start) ===");
+        LogActivitySourceDiagnostics(logger, applicationName);
+        logger.LogInformation("=== End ActivitySource Diagnostics ===");
     }
 
     /// <summary>

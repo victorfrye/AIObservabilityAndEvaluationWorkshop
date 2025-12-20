@@ -61,15 +61,21 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation(tracing =>
+                    .AddAspNetCoreInstrumentation(aspNetCoreTracing =>
                         // Exclude health check requests from tracing
-                        tracing.Filter = context =>
+                        aspNetCoreTracing.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
                             && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
                     )
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
+                
+                // For console apps, also register ActivitySources using wildcard pattern to catch all sources
+                // This ensures any ActivitySource created in the application namespace will be captured
+                // The pattern matches any ActivitySource name starting with the application name
+                string wildcardPattern = $"{builder.Environment.ApplicationName}*";
+                tracing.AddSource(wildcardPattern);
             });
 
         builder.AddOpenTelemetryExporters();

@@ -3,6 +3,7 @@
 using AIObservabilityAndEvaluationWorkshop.ConsoleRunner;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.CommandLine;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
@@ -12,12 +13,13 @@ TelemetryDiagnostics.LogPreConfigurationDiagnostics(builder);
 
 builder.AddServiceDefaults();
 
-// Register DisplayCommand's ActivitySource with OpenTelemetry
-// The ServiceDefaults only registers the ApplicationName, but DisplayCommand uses its full type name
+// Explicitly register DisplayCommand's ActivitySource with OpenTelemetry
+// This extends the existing OpenTelemetry configuration from AddServiceDefaults
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
     {
         // Register the ActivitySource used by DisplayCommand
+        // The full type name is: AIObservabilityAndEvaluationWorkshop.ConsoleRunner.DisplayCommand
         string displayCommandSourceName = typeof(DisplayCommand).FullName!;
         tracing.AddSource(displayCommandSourceName);
     });
@@ -29,6 +31,10 @@ IHost host = builder.Build();
 TelemetryDiagnostics.LogPostConfigurationDiagnostics(host, builder);
 
 await host.StartAsync();
+
+// Log ActivitySource diagnostics after host starts (TracerProvider is now built)
+ILogger<Program> logger = host.Services.GetRequiredService<ILogger<Program>>();
+TelemetryDiagnostics.LogActivitySourceDiagnosticsAfterStart(logger, builder.Environment.ApplicationName);
 
 // Add the display command that allows users to send an input in through a message parameter
 Command displayCommand = new Command("display", "Display a message");
