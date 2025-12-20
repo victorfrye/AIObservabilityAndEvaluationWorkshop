@@ -19,9 +19,6 @@ var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("ConsoleRunner started");
 
-// Define output file path
-var outputFilePath = Path.Combine(AppContext.BaseDirectory, "console_output.json");
-
 // Create the root command
 var rootCommand = new RootCommand("Console application for displaying messages");
 
@@ -30,9 +27,13 @@ var displayCommand = new Command("display", "Display a message");
 var messageArgument = new Argument<string>("message", "The message to display");
 displayCommand.AddArgument(messageArgument);
 
-displayCommand.SetHandler(async (string message) =>
+displayCommand.SetHandler(async (message) =>
 {
     var commandLogger = host.Services.GetRequiredService<ILogger<Program>>();
+
+    // Get output file path from environment variable
+    var outputFile = Environment.GetEnvironmentVariable("CONSOLE_OUTPUT_FILE");
+    Console.WriteLine($"Output file: {outputFile}");
 
     using var activity = activitySource.StartActivity("DisplayMessage");
     activity?.SetTag("message", message);
@@ -41,46 +42,54 @@ displayCommand.SetHandler(async (string message) =>
 
     Console.WriteLine(message);
 
-    // Create result object
-    var result = new ConsoleResult
+    // Only write to output file if environment variable is set
+    if (!string.IsNullOrEmpty(outputFile))
     {
-        Success = true,
-        Input = message,
-        Output = message,
-        ErrorMessage = null
-    };
+        commandLogger.LogInformation("Writing output to: {OutputFile}", outputFile);
 
-    // Write to output file
-    try
-    {
-        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(outputFilePath, json);
-    }
-    catch (Exception ex)
-    {
-        commandLogger.LogError(ex, "Failed to write to output file");
-
-        // Write error result instead
-        var errorResult = new ConsoleResult
+        // Create result object
+        var result = new ConsoleResult
         {
-            Success = false,
+            Success = true,
             Input = message,
-            Output = null,
-            ErrorMessage = ex.Message
+            Output = message,
+            ErrorMessage = null
         };
 
+        // Write to output file
         try
         {
-            var errorJson = JsonSerializer.Serialize(errorResult, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(outputFilePath, errorJson);
+            var json = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(outputFile, json);
         }
-        catch (Exception innerEx)
+        catch (Exception ex)
         {
-            commandLogger.LogError(innerEx, "Failed to write error result to output file");
+            commandLogger.LogError(ex, "Failed to write to output file");
+
+            // Write error result instead
+            var errorResult = new ConsoleResult
+            {
+                Success = false,
+                Input = message,
+                Output = null,
+                ErrorMessage = ex.Message
+            };
+
+            try
+            {
+                var errorJson = JsonSerializer.Serialize(errorResult, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(outputFile, errorJson);
+            }
+            catch (Exception innerEx)
+            {
+                commandLogger.LogError(innerEx, "Failed to write error result to output file");
+            }
         }
     }
-
-    return;
+    else
+    {
+        commandLogger.LogWarning("CONSOLE_OUTPUT_FILE environment variable not set, skipping output file write");
+    }
 }, messageArgument);
 
 rootCommand.AddCommand(displayCommand);

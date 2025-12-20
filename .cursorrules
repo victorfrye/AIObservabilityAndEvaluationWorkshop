@@ -1,0 +1,31 @@
+# Cursor Rules for AIObservabilityAndEvaluationWorkshop
+
+## General Rules
+- On some machines I run podman while others use docker desktop. Please search for both if you need a container solution.
+- Do not use `dotnet run` commands. If the application needs to be run, ask the user to do so.
+
+## AppHost.cs Rules
+When working with AIObservabilityAndEvaluationWorkshop.AppHost/AppHost.cs:
+
+### File Coordination Logic
+- Use temporary files created with `Path.GetTempFileName()` and changed to `.json` extension for inter-process communication
+- Pass the temporary output file path via `CONSOLE_OUTPUT_FILE` environment variable to ConsoleRunner
+- Use polling-based file watching instead of FileSystemWatcher for reliability
+- Poll every 100ms for up to 10 seconds to detect file creation and content
+- Wait additional 200ms after detecting file content to ensure write completion
+- Handle file locking gracefully with retries when reading JSON results
+
+### Interaction Service Usage
+- Always check `interactionService.IsAvailable` before using interaction service
+- Use appropriate `MessageIntent` values (Success, Error, Information) for notifications
+- Provide clear, descriptive titles and messages for user notifications
+
+### Resource Management
+- Use `WithExplicitStart()` for console app resources that need manual triggering
+- Implement proper cleanup of temporary files and watchers
+- Handle cancellation tokens appropriately in async operations
+
+### Error Handling
+- Provide fallback notifications when file operations fail
+- Log errors but continue execution where possible
+- Use structured error messages with context

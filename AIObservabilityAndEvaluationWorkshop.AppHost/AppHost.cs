@@ -7,11 +7,22 @@ using AIObservabilityAndEvaluationWorkshop.Definitions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Create a temporary file for the console app output
+var tempOutputFile = Path.GetTempFileName();
+var tempOutputJsonFile = Path.ChangeExtension(tempOutputFile, ".json");
+
+// Ensure the temporary JSON file doesn't exist initially
+if (File.Exists(tempOutputJsonFile))
+{
+    File.Delete(tempOutputJsonFile);
+}
+
 string[] appArgs = [];
 
 // Add the console app project (without WithExplicitStart so it doesn't auto-start)
 IResourceBuilder<ProjectResource> consoleAppBuilder =
     builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app")
+        .WithEnvironment("CONSOLE_OUTPUT_FILE", tempOutputJsonFile)
         //.WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:19288")
         .WithExplicitStart()
         .WithArgs(context =>
@@ -74,111 +85,45 @@ new CommandOptions
 consoleAppBuilder.OnResourceReady(async (resource, readyEvent, cancellationToken) =>
 {
     var interactionService = readyEvent.Services.GetRequiredService<IInteractionService>();
-    
+
     if (!interactionService.IsAvailable)
     {
         return;
     }
-    
-    // The console app writes output to console_output.txt in its base directory (AppContext.BaseDirectory)
-    // In Aspire, project resources run in their build output directory
-    // We need to construct the path to the console app's output file
-    
-    // Construct the path based on the known project structure
-    // The console app is in the ConsoleRunner directory relative to the solution root
-    var appHostAssemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
-    var appHostDir = Path.GetDirectoryName(appHostAssemblyLocation) ?? AppContext.BaseDirectory;
-    
-    // Navigate from AppHost/bin/Debug/net10.0 to solution root, then to ConsoleRunner/bin/Debug/net10.0
-    var solutionRoot = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", ".."));
-    
-    // Try Debug first, then Release
-    var debugPath = Path.Combine(solutionRoot, "ConsoleRunner", "bin", "Debug", "net10.0", "console_output.json");
-    var releasePath = Path.Combine(solutionRoot, "ConsoleRunner", "bin", "Release", "net10.0", "console_output.json");
-    
-    // Also try relative to AppHost directory (in case paths are different)
-    var relativeDebugPath = Path.Combine(appHostDir, "..", "..", "..", "ConsoleRunner", "bin", "Debug", "net10.0", "console_output.json");
-    var relativeReleasePath = Path.Combine(appHostDir, "..", "..", "..", "ConsoleRunner", "bin", "Release", "net10.0", "console_output.json");
 
-    // Find the first existing file, or use Debug as default
-    var outputFilePath = File.Exists(debugPath) ? debugPath :
-                        File.Exists(releasePath) ? releasePath :
-                        File.Exists(relativeDebugPath) ? Path.GetFullPath(relativeDebugPath) :
-                        File.Exists(relativeReleasePath) ? Path.GetFullPath(relativeReleasePath) :
-                        debugPath; // Default to Debug path for file watcher
+    // Use the temporary file we created for output
+    var outputFilePath = tempOutputJsonFile;
     
-    // Use FileSystemWatcher to monitor the output file
-    var watchDirectory = Path.GetDirectoryName(outputFilePath);
-    if (string.IsNullOrEmpty(watchDirectory) || !Directory.Exists(watchDirectory))
+    // Poll for the output file to be created and written
+    var fileFound = false;
+    var startTime = DateTime.UtcNow;
+
+    // Poll every 100ms for up to 10 seconds
+    while (!fileFound && (DateTime.UtcNow - startTime).TotalSeconds < 10)
     {
-        // If directory doesn't exist, wait a bit and check again
-        await Task.Delay(1000, cancellationToken);
-        watchDirectory = Path.GetDirectoryName(outputFilePath);
-    }
-    
-    FileSystemWatcher? fileWatcher = null;
-    if (!string.IsNullOrEmpty(watchDirectory) && Directory.Exists(watchDirectory))
-    {
-        fileWatcher = new FileSystemWatcher
+        if (File.Exists(outputFilePath))
         {
-            Path = watchDirectory,
-            Filter = Path.GetFileName(outputFilePath),
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
-            EnableRaisingEvents = true
-        };
-    }
-    
-    var fileUpdated = new TaskCompletionSource<bool>();
-    var fileRead = false;
-    
-    // Watch for file changes if watcher was created
-    if (fileWatcher != null)
-    {
-        fileWatcher.Changed += (_, e) =>
-        {
-            if (!fileRead && File.Exists(e.FullPath))
+            try
             {
-                // Small delay to ensure file write is complete
-                Task.Delay(100).ContinueWith(_ =>
+                // Check if file has content (not empty or just created)
+                var fileInfo = new FileInfo(outputFilePath);
+                if (fileInfo.Length > 0)
                 {
-                    if (!fileRead)
-                    {
-                        fileRead = true;
-                        fileUpdated.TrySetResult(true);
-                    }
-                });
+                    // Additional small delay to ensure write is complete
+                    await Task.Delay(200, cancellationToken);
+                    fileFound = true;
+                }
             }
-        };
-        
-        fileWatcher.Created += (_, _) =>
-        {
-            if (!fileRead)
+            catch (IOException)
             {
-                fileRead = true;
-                fileUpdated.TrySetResult(true);
+                // File might still be locked, continue polling
             }
-        };
-    }
-    
-    // Also check if file already exists (console app might have completed quickly)
-    if (File.Exists(outputFilePath))
-    {
-        await Task.Delay(500, cancellationToken); // Wait a bit for file to be fully written
-        if (!fileRead)
-        {
-            fileRead = true;
-            fileUpdated.TrySetResult(true);
         }
-    }
-    
-    // Wait for file update or timeout after 10 seconds
-    var timeoutTask = Task.Delay(10000, cancellationToken);
-    await Task.WhenAny(fileUpdated.Task, timeoutTask);
-    
-    if (fileWatcher != null)
-    {
-        fileWatcher.EnableRaisingEvents = false;
-        fileWatcher.Dispose();
+
+        if (!fileFound)
+        {
+            await Task.Delay(100, cancellationToken);
+        }
     }
     
     // Read and deserialize the result from the file
