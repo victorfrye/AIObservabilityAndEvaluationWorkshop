@@ -31,11 +31,11 @@ rootCommand.AddCommand(displayCommand);
 // Add default handler for when no command is specified
 rootCommand.SetHandler(async () =>
 {
-    var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultCommand");
-    var activitySource = new ActivitySource(typeof(Program).FullName!);
+    ILogger logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultCommand");
+    ActivitySource activitySource = new(typeof(Program).FullName!);
 
     // Create service instance with null input for default command
-    var aspireService = new AspireService(activitySource, logger, null);
+    AspireService aspireService = new(activitySource, logger, null);
 
     // Log the console error using the helper
     aspireService.LogError(

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -52,9 +52,7 @@ public static class Extensions
             logging.IncludeScopes = true;
         });
 
-        var otlpExporterConfigured = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-        
-        var openTelemetryBuilder = builder.Services.AddOpenTelemetry()
+        builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
@@ -64,55 +62,40 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation(aspNetCoreTracing =>
+                    .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
-                        aspNetCoreTracing.Filter = context =>
+                        tracing.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
                             && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
                     )
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
-                
-                // For console apps, also register ActivitySources using wildcard pattern to catch all sources
-                // This ensures any ActivitySource created in the application namespace will be captured
-                // The pattern matches any ActivitySource name starting with the application name
-                string wildcardPattern = $"{builder.Environment.ApplicationName}*";
-                tracing.AddSource(wildcardPattern);
             });
 
-        // Chain the OTLP exporter to the same builder to ensure proper configuration
-        // This is critical - calling AddOpenTelemetry() again creates a separate builder
-        if (otlpExporterConfigured)
-        {
-            // Try to use Aspire's UseOtlpExporter() extension method if available
-            // If that doesn't work, fall back to manual OTLP exporter configuration
-            try
-            {
-                // UseOtlpExporter() is an Aspire extension method that configures the OTLP exporter
-                // It reads OTEL_EXPORTER_OTLP_ENDPOINT from configuration automatically
-                openTelemetryBuilder.UseOtlpExporter();
-            }
-            catch
-            {
-                // Fallback: Manually configure OTLP exporter if UseOtlpExporter() is not available
-                // This ensures telemetry export works even if the Aspire extension method fails
-                var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] 
-                    ?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
-                
-                if (!string.IsNullOrWhiteSpace(otlpEndpoint))
-                {
-                    openTelemetryBuilder
-                        .WithTracing(tracing => tracing.AddOtlpExporter())
-                        .WithMetrics(metrics => metrics.AddOtlpExporter())
-                        .WithLogging(logging => logging.AddOtlpExporter());
-                }
-            }
-        }
+        builder.AddOpenTelemetryExporters();
 
         return builder;
     }
 
+    private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        if (useOtlpExporter)
+        {
+            builder.Services.AddOpenTelemetry().UseOtlpExporter();
+        }
+
+        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
+        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        //{
+        //    builder.Services.AddOpenTelemetry()
+        //       .UseAzureMonitor();
+        //}
+
+        return builder;
+    }
 
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
@@ -142,4 +125,33 @@ public static class Extensions
         return app;
     }
 
+}
+
+namespace AIObservabilityAndEvaluationWorkshop.ServiceDefaults
+{
+    /// <summary>
+    /// Represents the result of a console operation with success/failure status and associated data.
+    /// </summary>
+    public record ConsoleResult
+    {
+        /// <summary>
+        /// Indicates whether the operation was successful.
+        /// </summary>
+        public required bool Success { get; init; }
+
+        /// <summary>
+        /// The error message, used only when Success is false.
+        /// </summary>
+        public string? ErrorMessage { get; init; }
+
+        /// <summary>
+        /// The output content, used only when Success is true.
+        /// </summary>
+        public string? Output { get; init; }
+
+        /// <summary>
+        /// The original input provided by the user.
+        /// </summary>
+        public required string Input { get; init; }
+    }
 }
