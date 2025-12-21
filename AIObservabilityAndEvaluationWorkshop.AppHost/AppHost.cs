@@ -43,11 +43,13 @@ internal partial class Program
                                 
                                 if (interactionSvc is { IsAvailable: true })
                                 {
+                                    string lessonTitlePrefix = !string.IsNullOrWhiteSpace(result.LessonId) ? $"{result.LessonId} " : "";
+
                                     switch (result.Success)
                                     {
                                         case true when !string.IsNullOrWhiteSpace(result.Output):
                                             await interactionSvc.PromptNotificationAsync(
-                                                title: "Completed",
+                                                title: $"{lessonTitlePrefix}Completed",
                                                 message: result.Output,
                                                 options: new NotificationInteractionOptions
                                                 {
@@ -57,7 +59,7 @@ internal partial class Program
                                             break;
                                         case true when string.IsNullOrWhiteSpace(result.Output):
                                             await interactionSvc.PromptNotificationAsync(
-                                                title: "No Output",
+                                                title: $"{lessonTitlePrefix}No Output",
                                                 message: "The operation completed, but produced no output",
                                                 options: new NotificationInteractionOptions
                                                 {
@@ -67,7 +69,7 @@ internal partial class Program
                                             break;
                                         default:
                                             await interactionSvc.PromptNotificationAsync(
-                                                title: "Error",
+                                                title: $"{lessonTitlePrefix}Error",
                                                 message: result.ErrorMessage ?? "An unknown error occurred.",
                                                 options: new NotificationInteractionOptions
                                                 {
@@ -116,25 +118,49 @@ internal partial class Program
                 return new ExecuteCommandResult { Success = false, ErrorMessage = "Interaction service not available" };
             }
 
-            // Prompt the user for input
-            InteractionResult<InteractionInput> result = await interactionService.PromptInputAsync(
-                title: "User Input",
-                message: "Please enter some text:",
+            // Prompt the user for lesson choice
+            InteractionResult<InteractionInput> lessonResult = await interactionService.PromptInputAsync(
+                title: "Lesson Selection",
+                message: "Please select a lesson:",
                 input: new InteractionInput
                 {
-                    Name = "UserInput",
+                    Name = "LessonId",
+                    InputType = InputType.Choice,
+                    Required = true,
+                    Options = [
+                        new("A", "Lesson A"), 
+                        new("B", "Lesson B"), 
+                        new("C", "Lesson C")
+                    ]
+                });
+
+            if (lessonResult.Canceled)
+            {
+                await interactionService.PromptNotificationAsync("Cancelled", "Operation cancelled by user.");
+                return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled lesson selection" };
+            }
+
+            // Prompt the user for message
+            InteractionResult<InteractionInput> messageResult = await interactionService.PromptInputAsync(
+                title: "Message Input",
+                message: "Please enter your message:",
+                input: new InteractionInput
+                {
+                    Name = "UserMessage",
                     InputType = InputType.Text,
                     Required = true,
                     Placeholder = "Enter your message here"
                 });
 
-            if (result.Canceled)
+            if (messageResult.Canceled)
             {
                 await interactionService.PromptNotificationAsync("Cancelled", "Operation cancelled by user.");
-                return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled input" };
+                return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled message input" };
             }
 
-            appArgs = ["display", result.Data?.Value ?? "Hello, World!"];
+            string lessonId = lessonResult.Data?.Value ?? "A";
+            string message = messageResult.Data?.Value ?? "Hello, World!";
+            appArgs = ["display", message, lessonId];
 
             Console.WriteLine($"AppHost: Starting console app with args: {string.Join(", ", appArgs)}");
 

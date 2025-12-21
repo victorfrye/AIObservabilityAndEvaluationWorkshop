@@ -46,27 +46,29 @@ public class AspireService(ActivitySource activitySource, ILogger logger, string
         logger.LogInformation("Console result output: {Json}", JsonSerializer.Serialize(result, _jsonSerializerOptions));
     }
 
-    public void LogSuccess(string? output, string activityName = "AspireService.LogSuccess", params (string Key, object? Value)[] activityTags)
+    public void LogSuccess(string? output, string? lessonId, string activityName = "AspireService.LogSuccess", params (string Key, object? Value)[] activityTags)
     {
         ConsoleResult result = new()
         {
             Success = true,
             Input = input,
             Output = output,
-            ErrorMessage = null
+            ErrorMessage = null,
+            LessonId = lessonId
         };
 
         LogResult(result, activityName, activityTags);
     }
 
-    public void LogError(string? errorMessage, string activityName = "AspireService.LogError", params (string Key, object? Value)[] activityTags)
+    public void LogError(string? errorMessage, string? lessonId, string activityName = "AspireService.LogError", params (string Key, object? Value)[] activityTags)
     {
         ConsoleResult result = new()
         {
             Success = false,
             Input = input,
             Output = null,
-            ErrorMessage = errorMessage
+            ErrorMessage = errorMessage,
+            LessonId = lessonId
         };
 
         LogResult(result, activityName, activityTags);

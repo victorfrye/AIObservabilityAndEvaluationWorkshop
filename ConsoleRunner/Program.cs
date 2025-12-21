@@ -17,12 +17,14 @@ TelemetryDiagnostics.LogOtelEnvironmentVariables(host.Services.GetRequiredServic
 await host.StartAsync();
 
 // Add the display command that allows users to send an input in through a message parameter
-Command displayCommand = new("display", "Display a message");
+Command displayCommand = new("display", "Display a message and lesson ID");
 Argument<string> messageArgument = new ("message", "The message to display");
+Argument<string> lessonIdArgument = new ("lesson-id", "The lesson ID (A, B, or C)");
 displayCommand.AddArgument(messageArgument);
+displayCommand.AddArgument(lessonIdArgument);
 
 DisplayCommand command = host.Services.GetRequiredService<DisplayCommand>();
-displayCommand.SetHandler(command.ExecuteAsync, messageArgument);
+displayCommand.SetHandler(command.ExecuteAsync, messageArgument, lessonIdArgument);
 
 // Create the root command that routes inputs to other commands
 RootCommand rootCommand = new("Console application for displaying messages");
@@ -40,6 +42,7 @@ rootCommand.SetHandler(async () =>
     // Log the console error using the helper
     aspireService.LogError(
         "Please use the 'Start with Input' command to run this application",
+        null,
         "DefaultCommand.Execute",
         ("command.name", "default")
     );

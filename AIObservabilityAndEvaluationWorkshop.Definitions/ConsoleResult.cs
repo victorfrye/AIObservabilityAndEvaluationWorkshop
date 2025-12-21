@@ -24,4 +24,9 @@ public record ConsoleResult
     /// The original input provided by the user.
     /// </summary>
     public string? Input { get; init; }
+
+    /// <summary>
+    /// The lesson ID associated with this operation.
+    /// </summary>
+    public string? LessonId { get; init; }
 }
