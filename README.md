@@ -1,45 +1,28 @@
-# AIObservabilityAndEvaluationWorkshop
+# AI Observability and Evaluation Workshop
 
-## Requirements
+Conducted by Matt Eland and Victor Frye from [Leading EDJE](https://LeadingEDJE.com)
 
-- .NET 10.0 SDK or later
+See [AGENDA.md](AGENDA.md) for the workshop schedule and exercises.
 
-## Setup Instructions
+## Setup and Requirements
 
-### 1. Install .NET 10.0 SDK
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [Tooling compatible with Aspire (VS 2022 / 2026), VS Code, Rider, Cursor, etc.](https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/setup-tooling)
 
-Download and install the .NET 10.0 SDK from the official .NET download page:
-- [Download .NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+Some examples will use containerized resources. For these you will need either:
 
-Verify the installation:
-```bash
-dotnet --version
-```
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) * licensing may not be advisable on corporate machines
+- [Podman](https://podman.io/)
 
-### 2. Install Aspire CLI
+We recommend launching the application in advance with a stable internet connection to allow the appropriate container images to be downloaded.
 
-Install the Aspire CLI using the official installation script:
+**Cloud Resource recommendations coming soon...**
 
-**Linux/macOS:**
-```bash
-curl -sSL https://aspire.dev/install.sh | bash
-```
+### Troubleshooting
 
-**Windows (PowerShell):**
-```powershell
-irm https://aspire.dev/install.ps1 | iex
-```
+Here are a few tricky issues you may encounter when running the workshop code.
 
-For more information, see the [Aspire Prerequisites](https://aspire.dev/get-started/prerequisites/) page.
-
-Verify the installation:
-```bash
-aspire --version
-```
-
-## Troubleshooting
-
-### Inotify Limit Error on Linux
+#### Inotify Limit Error on Linux
 
 If you encounter the error:
 ```

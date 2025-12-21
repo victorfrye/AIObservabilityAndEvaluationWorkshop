@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.CommandLine;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
@@ -26,6 +27,25 @@ displayCommand.SetHandler(command.ExecuteAsync, messageArgument);
 // Create the root command that routes inputs to other commands
 RootCommand rootCommand = new("Console application for displaying messages");
 rootCommand.AddCommand(displayCommand);
+
+// Add default handler for when no command is specified
+rootCommand.SetHandler(async () =>
+{
+    var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultCommand");
+    var activitySource = new ActivitySource(typeof(Program).FullName!);
+
+    // Create service instance with null input for default command
+    var aspireService = new AspireService(activitySource, logger, null);
+
+    // Log the console error using the helper
+    aspireService.LogError(
+        "Please use the 'Start with Input' command to run this application",
+        "DefaultCommand.Execute",
+        ("command.name", "default")
+    );
+
+    await Task.CompletedTask;
+});
 
 int result = await rootCommand.InvokeAsync(args);
 
