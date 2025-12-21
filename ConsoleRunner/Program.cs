@@ -13,7 +13,7 @@ builder.AddServiceDefaults();
 builder.Services.AddScoped<ExecuteLessonCommand>();
 
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<LessonA>()
+    .FromAssemblyOf<IntroductionToOTel>()
     .AddClasses(classes => classes.AssignableTo<LessonBase>())
     .As<LessonBase>()
     .WithScopedLifetime());
@@ -28,12 +28,12 @@ await host.StartAsync();
 // Add the execute-lesson command that allows users to send an input in through a message parameter
 Command executeLessonCommand = new("execute-lesson", "Execute a lesson with a message");
 Argument<string> messageArgument = new ("message", "The message to pass to the lesson");
-Argument<string> lessonIdArgument = new ("lesson-id", "The lesson ID");
+Argument<string> lessonDisplayNameArgument = new ("lesson-display-name", "The lesson display name");
 executeLessonCommand.AddArgument(messageArgument);
-executeLessonCommand.AddArgument(lessonIdArgument);
+executeLessonCommand.AddArgument(lessonDisplayNameArgument);
 
 ExecuteLessonCommand command = host.Services.GetRequiredService<ExecuteLessonCommand>();
-executeLessonCommand.SetHandler(command.ExecuteAsync, messageArgument, lessonIdArgument);
+executeLessonCommand.SetHandler(command.ExecuteAsync, messageArgument, lessonDisplayNameArgument);
 
 // Create the root command that routes inputs to other commands
 RootCommand rootCommand = new("Console application for running lessons");

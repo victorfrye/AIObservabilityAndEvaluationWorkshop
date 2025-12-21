@@ -129,8 +129,8 @@ internal partial class Program
             }
 
             // Prompt the user for lesson choice
-            var lessons = context.ServiceProvider.GetServices<LessonBase>().OrderBy(l => l.Id).ToList();
-            var options = lessons.Select(l => new KeyValuePair<string, string>(l.Id, l.DisplayName)).ToArray();
+            var lessons = context.ServiceProvider.GetServices<LessonBase>().OrderBy(l => l.DisplayName).ToList();
+            var options = lessons.Select(l => new KeyValuePair<string, string>(l.DisplayName, l.DisplayName)).ToArray();
 
             if (options.Length == 0)
             {
@@ -142,7 +142,7 @@ internal partial class Program
                 message: "Please select a lesson:",
                 input: new InteractionInput
                 {
-                    Name = "LessonId",
+                    Name = "DisplayName",
                     InputType = InputType.Choice,
                     Required = true,
                     Options = options
@@ -170,9 +170,9 @@ internal partial class Program
                 return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled message input" };
             }
 
-            string lessonId = lessonResult.Data?.Value ?? "A";
+            string displayName = lessonResult.Data?.Value ?? options[0].Key;
             string message = messageResult.Data?.Value ?? "Hello, World!";
-            appArgs = ["execute-lesson", message, lessonId];
+            appArgs = ["execute-lesson", message, displayName];
 
             Console.WriteLine($"AppHost: Starting console app with args: {string.Join(", ", appArgs)}");
 
