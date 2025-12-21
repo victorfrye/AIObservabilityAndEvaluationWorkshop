@@ -4,6 +4,39 @@
 
 - .NET 10.0 SDK or later
 
+## Setup Instructions
+
+### 1. Install .NET 10.0 SDK
+
+Download and install the .NET 10.0 SDK from the official .NET download page:
+- [Download .NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+
+Verify the installation:
+```bash
+dotnet --version
+```
+
+### 2. Install Aspire CLI
+
+Install the Aspire CLI using the official installation script:
+
+**Linux/macOS:**
+```bash
+curl -sSL https://aspire.dev/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://aspire.dev/install.ps1 | iex
+```
+
+For more information, see the [Aspire Prerequisites](https://aspire.dev/get-started/prerequisites/) page.
+
+Verify the installation:
+```bash
+aspire --version
+```
+
 ## Troubleshooting
 
 ### Inotify Limit Error on Linux
