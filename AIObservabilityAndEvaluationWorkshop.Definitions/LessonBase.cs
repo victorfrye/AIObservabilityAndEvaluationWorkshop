@@ -7,6 +7,8 @@ public abstract class LessonBase
 {
     public abstract string DisplayName { get; }
 
+    public virtual bool NeedsInput => true;
+
     private readonly ActivitySource _activitySource;
 
     protected LessonBase()

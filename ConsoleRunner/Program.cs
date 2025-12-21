@@ -13,7 +13,7 @@ builder.AddServiceDefaults();
 builder.Services.AddScoped<ExecuteLessonCommand>();
 
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<IntroductionToOTel>()
+    .FromAssemblyOf<HelloWorkshop>()
     .AddClasses(classes => classes.AssignableTo<LessonBase>())
     .As<LessonBase>()
     .WithScopedLifetime());

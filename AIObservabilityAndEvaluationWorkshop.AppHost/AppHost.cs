@@ -146,25 +146,32 @@ consoleAppBuilder.WithCommand("start-with-input", "Start with Input", async (con
             return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled lesson selection" };
         }
 
-        // Prompt the user for message
-        InteractionResult<InteractionInput> messageResult = await interactionService.PromptInputAsync(
-            title: "Message Input",
-            message: "Please enter your message:",
-            input: new InteractionInput
-            {
-                Name = "UserMessage",
-                InputType = InputType.Text,
-                Required = true,
-                Placeholder = "Enter your message here"
-            });
+        string displayName = lessonResult.Data?.Value ?? options[0].Key;
+        LessonBase selectedLesson = lessons.First(l => l.DisplayName == displayName);
 
-        if (messageResult.Canceled)
+        string message = "No Input needed";
+        if (selectedLesson.NeedsInput)
         {
-            return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled message input" };
+            // Prompt the user for message
+            InteractionResult<InteractionInput> messageResult = await interactionService.PromptInputAsync(
+                title: "Message Input",
+                message: "Please enter your message:",
+                input: new InteractionInput
+                {
+                    Name = "UserMessage",
+                    InputType = InputType.Text,
+                    Required = true,
+                    Placeholder = "Enter your message here"
+                });
+
+            if (messageResult.Canceled)
+            {
+                return new ExecuteCommandResult { Success = false, ErrorMessage = "User cancelled message input" };
+            }
+
+            message = messageResult.Data?.Value ?? "Hello, World!";
         }
 
-        string displayName = lessonResult.Data?.Value ?? options[0].Key;
-        string message = messageResult.Data?.Value ?? "Hello, World!";
         appArgs = ["execute-lesson", message, displayName];
 
         Console.WriteLine($"AppHost: Starting console app with args: {string.Join(", ", appArgs)}");
