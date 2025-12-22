@@ -29,6 +29,7 @@ if (!Uri.TryCreate(ollamaEndpoint, UriKind.Absolute, out Uri? ollamaUri))
 }
 
 builder.Services.AddChatClient(sp => new OllamaChatClient(ollamaUri, modelName))
+    .UseFunctionInvocation()
     .Use((inner, sp) =>
     {
         var loggerFactory = sp.GetRequiredService<ILoggerFactory>();

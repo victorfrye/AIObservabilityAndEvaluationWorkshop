@@ -12,7 +12,8 @@ public class MEAIWithToolsLesson(IChatClient chatClient) : LessonBase
     {
         ChatOptions options = new()
         {
-            Tools = [AIFunctionFactory.Create(GetWeather), AIFunctionFactory.Create(GetTime)]
+            Tools = [AIFunctionFactory.Create(GetWeather), AIFunctionFactory.Create(GetTime)],
+            ToolMode = ChatToolMode.Auto
         };
 
         ChatResponse response = await chatClient.GetResponseAsync(message, options);
