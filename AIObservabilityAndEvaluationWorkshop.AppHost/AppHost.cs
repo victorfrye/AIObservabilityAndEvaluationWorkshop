@@ -9,6 +9,8 @@ using System.Reflection;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
+var enableSensitiveDataLogging = builder.AddParameter("EnableSensitiveDataLogging", secret: false);
+
 var ollama = builder.AddOllama("ollama")
     .WithDataVolume("ollama-data");
 var llama = ollama.AddModel("llama3.2");
@@ -33,6 +35,7 @@ IResourceBuilder<ProjectResource> consoleAppBuilder =
         .WithReference(llama)
         .WithReference(ollama)
         .WithEnvironment("AI_MODEL", "llama3.2")
+        .WithEnvironment("EnableSensitiveDataLogging", enableSensitiveDataLogging)
         .WithExplicitStart()
         .WithOutputWatcher(ConsoleAppHelpers.GetConsoleResultRegex(), isSecret: false, "json")
         .OnMatched(async (e, ct) =>

@@ -32,9 +32,12 @@ builder.Services.AddChatClient(sp => new OllamaChatClient(ollamaUri, modelName))
     .Use((inner, sp) =>
     {
         var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var configuration = sp.GetRequiredService<IConfiguration>();
+        bool enableSensitiveData = configuration.GetValue<bool>("EnableSensitiveDataLogging", true);
+
         return new OpenTelemetryChatClient(inner, loggerFactory.CreateLogger("Microsoft.Extensions.AI"))
         {
-            EnableSensitiveData = true
+            EnableSensitiveData = enableSensitiveData
         };
     });
 
