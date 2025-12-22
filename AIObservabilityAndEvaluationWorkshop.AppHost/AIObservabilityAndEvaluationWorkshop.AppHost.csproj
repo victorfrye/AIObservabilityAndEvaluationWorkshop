@@ -11,12 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0" />
-    <PackageReference Include="C3D.Extensions.Aspire.OutputWatcher" Version="0.1.17" />
-    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Ollama" Version="13.0.1-beta.468" />
-    <PackageReference Include="Microsoft.Extensions.AI" Version="10.1.1" />
-    <PackageReference Include="Microsoft.Extensions.AI.Ollama" Version="9.7.0-preview.1.25356.2" />
-    <PackageReference Include="Scrutor" Version="7.0.0" />
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="C3D.Extensions.Aspire.OutputWatcher" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Ollama" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.Ollama" />
+    <PackageReference Include="Scrutor" />
   </ItemGroup>
 
   <ItemGroup>

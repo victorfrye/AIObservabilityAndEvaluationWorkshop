@@ -28,7 +28,8 @@ if (!Uri.TryCreate(ollamaEndpoint, UriKind.Absolute, out Uri? ollamaUri))
     ollamaUri = new Uri("http://localhost:11434");
 }
 
-builder.Services.AddChatClient(new OllamaChatClient(ollamaUri, modelName));
+builder.Services.AddChatClient(new OllamaChatClient(ollamaUri, modelName))
+    .UseOpenTelemetry();
 
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<HelloWorkshop>()
