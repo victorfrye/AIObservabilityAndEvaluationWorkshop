@@ -58,13 +58,15 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddMeter("Microsoft.Extensions.AI")
+                    .AddMeter("Microsoft.Extensions.AI*")
+                    .AddMeter("Experimental.Microsoft.Extensions.AI*")
                     .AddMeter("AIObservabilityAndEvaluationWorkshop.*");
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddSource("Microsoft.Extensions.AI")
+                    .AddSource("Microsoft.Extensions.AI*")
+                    .AddSource("Experimental.Microsoft.Extensions.AI*")
                     .AddSource("AIObservabilityAndEvaluationWorkshop.*")
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
