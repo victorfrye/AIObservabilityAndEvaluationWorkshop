@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson("Hello Aspire and OpenTelemetry", needsInput: false)]
+[Lesson(1, 1, "Hello Aspire and AppHost files", needsInput: false)]
 public class HelloWorkshop : LessonBase
 {
     protected override Task<string> RunAsync(string message)

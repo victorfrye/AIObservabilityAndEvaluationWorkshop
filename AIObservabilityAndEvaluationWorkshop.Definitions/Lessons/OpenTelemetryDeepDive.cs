@@ -8,7 +8,7 @@ using OpenTelemetry.Trace;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson("OpenTelemetry Deep Dive", needsInput: false)]
+[Lesson(1, 3, "OpenTelemetry Deep Dive", needsInput: false)]
 public class OpenTelemetryDeepDive : LessonBase
 {
     private readonly ActivitySource _activitySource;

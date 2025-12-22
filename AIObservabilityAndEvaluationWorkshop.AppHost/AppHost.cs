@@ -21,7 +21,8 @@ var lessons = assembly.GetTypes()
     .Select(t => new { Type = t, Attribute = t.GetCustomAttribute<LessonAttribute>() })
     .Where(x => x.Attribute != null)
     .Select(x => x.Attribute!)
-    .OrderBy(a => a.DisplayName)
+    .OrderBy(a => a.Part)
+    .ThenBy(a => a.Order)
     .ToList();
 
 string[] appArgs = [];
@@ -135,7 +136,8 @@ consoleAppBuilder.WithCommand("start-with-input", "Start with Input", async (con
         }
 
         // Prompt the user for lesson choice
-        KeyValuePair<string, string>[] options = lessons.Select(l => new KeyValuePair<string, string>(l.DisplayName, l.DisplayName)).ToArray();
+        KeyValuePair<string, string>[] options = lessons.Select(l => 
+            new KeyValuePair<string, string>(l.DisplayName, $"{l.Part}.{l.Order} - {l.DisplayName}")).ToArray();
 
         if (options.Length == 0)
         {
