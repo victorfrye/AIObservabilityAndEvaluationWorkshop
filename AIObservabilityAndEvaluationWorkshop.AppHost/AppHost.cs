@@ -28,6 +28,7 @@ IResourceBuilder<ProjectResource> consoleAppBuilder =
     builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app")
         .WithReference(llama)
         .WithReference(ollama)
+        .WithEnvironment("AI_MODEL", "llama3.2")
         .WithExplicitStart()
         .WithOutputWatcher(ConsoleAppHelpers.GetConsoleResultRegex(), isSecret: false, "json")
         .OnMatched(async (e, ct) =>

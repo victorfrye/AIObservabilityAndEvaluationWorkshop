@@ -14,19 +14,21 @@ HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddScoped<ExecuteLessonCommand>();
 
-string ollamaEndpoint = builder.Configuration.GetConnectionString("llama3.2") 
+string modelName = builder.Configuration["AI_MODEL"] ?? "llama3.2";
+
+string ollamaEndpoint = builder.Configuration.GetConnectionString(modelName) 
                      ?? builder.Configuration.GetConnectionString("ollama") 
                      ?? "http://localhost:11434";
 
 Console.WriteLine($"[DEBUG_LOG] Resolved ollamaEndpoint: '{ollamaEndpoint}'");
 
-if (!Uri.TryCreate(ollamaEndpoint, UriKind.Absolute, out var ollamaUri))
+if (!Uri.TryCreate(ollamaEndpoint, UriKind.Absolute, out Uri? ollamaUri))
 {
     Console.WriteLine($"[DEBUG_LOG] Invalid URI '{ollamaEndpoint}', falling back to http://localhost:11434");
     ollamaUri = new Uri("http://localhost:11434");
 }
 
-builder.Services.AddChatClient(new Microsoft.Extensions.AI.OllamaChatClient(ollamaUri, "llama3.2"));
+builder.Services.AddChatClient(new OllamaChatClient(ollamaUri, modelName));
 
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<HelloWorkshop>()

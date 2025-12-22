@@ -45,7 +45,7 @@ public class OpenTelemetryDeepDive : LessonBase
         
         try
         {
-            using var activity = _activitySource.StartActivity("DeepDive.ProcessMessage");
+            using Activity? activity = _activitySource.StartActivity("DeepDive.ProcessMessage");
             activity?.SetTag("message.content", message);
             activity?.AddEvent(new ActivityEvent("Message processing started"));
 
@@ -72,7 +72,7 @@ public class OpenTelemetryDeepDive : LessonBase
             // Simulate Step 3: AI Processing (mocked)
             await RunStepWithActivityAsync("AIProcessing", async () =>
             {
-                using var innerActivity = _activitySource.StartActivity("LargeLanguageModel.Inference");
+                using Activity? innerActivity = _activitySource.StartActivity("LargeLanguageModel.Inference");
                 innerActivity?.SetTag("model.name", "gpt-4o");
                 innerActivity?.SetTag("tokens.prompt", message.Length / 4);
                 
@@ -97,7 +97,7 @@ public class OpenTelemetryDeepDive : LessonBase
 
     private async Task RunStepWithActivityAsync(string stepName, Func<Task> action)
     {
-        using var activity = _activitySource.StartActivity(stepName);
+        using Activity? activity = _activitySource.StartActivity(stepName);
         activity?.SetTag("step.name", stepName);
         try
         {
