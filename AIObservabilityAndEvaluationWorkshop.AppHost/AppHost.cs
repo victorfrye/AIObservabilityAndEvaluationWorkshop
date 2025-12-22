@@ -5,8 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Projects;
 using System.Text.Json;
 using AIObservabilityAndEvaluationWorkshop.AppHost;
+using Microsoft.Extensions.AI;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
+
+builder.Services.AddChatClient(new Microsoft.Extensions.AI.OllamaChatClient(new Uri("http://localhost:11434"), "llama3.2"));
+
+var ollama = builder.AddOllama("ollama")
+    .WithDataVolume("ollama-data");
+var llama = ollama.AddModel("llama3.2");
 
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<ConsoleResult>()
@@ -19,6 +26,8 @@ string[] appArgs = [];
 // Add the console app project (without WithExplicitStart so it doesn't auto-start)
 IResourceBuilder<ProjectResource> consoleAppBuilder =
     builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-app")
+        .WithReference(llama)
+        .WithReference(ollama)
         .WithExplicitStart()
         .WithOutputWatcher(ConsoleAppHelpers.GetConsoleResultRegex(), isSecret: false, "json")
         .OnMatched(async (e, ct) =>
