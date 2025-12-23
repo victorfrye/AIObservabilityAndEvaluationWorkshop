@@ -12,17 +12,17 @@ public class AzureReportStorageStrategy(IConfiguration configuration, ILogger<Az
 {
     public Task<ReportingConfiguration> CreateConfigurationAsync(IEnumerable<IEvaluator> evaluators)
     {
-        string? endpoint = configuration["AzureStorageAccountEndpoint"];
+        string? connectionString = configuration["AzureStorageConnectionString"];
         string? container = configuration["AzureStorageContainer"];
 
-        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(container))
+        if (string.IsNullOrEmpty(connectionString) || string.IsNullOrEmpty(container))
         {
-            throw new InvalidOperationException("Azure storage configuration is missing. Please set AzureStorageAccountEndpoint and AzureStorageContainer.");
+            throw new InvalidOperationException("Azure storage configuration is missing. Please set AzureStorageConnectionString and AzureStorageContainer.");
         }
 
-        DataLakeDirectoryClient dataLakeDirectoryClient = new(
-            new Uri(baseUri: new Uri(endpoint), relativeUri: container),
-            credential: new DefaultAzureCredential());
+        DataLakeServiceClient serviceClient = new(connectionString);
+        DataLakeFileSystemClient fileSystemClient = serviceClient.GetFileSystemClient(container);
+        DataLakeDirectoryClient dataLakeDirectoryClient = fileSystemClient.GetDirectoryClient(string.Empty);
 
         ReportingConfiguration reportingConfig = AzureStorageReportingConfiguration.Create(
             client: dataLakeDirectoryClient,
