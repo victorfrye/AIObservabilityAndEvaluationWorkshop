@@ -101,19 +101,21 @@ If you prefer, you can store reports in Azure Storage (Data Lake Gen2).
 
 ![Container Creation](Images/CreateStorageContainer.png)
 
-4. **Get the Endpoint**: Your endpoint will typically be `https://<your-storage-account-name>.dfs.core.windows.net/`.
+4. **Get the Connection String**: Navigate to **Access keys** under **Security + networking** in your storage account. Click **Show** and copy one of the **Connection string** values.
+
+![Storage Keys and ConnectionStrings](Images/StorageKeys.png)
 
 **To use Azure Storage**: 
 
 1. Set `ReportStorageType` to `"azure"`.
-2. Set `AzureStorageAccountEndpoint` to your Data Lake Gen2 endpoint.
+2. Set `AzureStorageConnectionString` to your storage account connection string.
 3. Set `AzureStorageContainer` to your container name.
 
 ```json
 {
   "Parameters": {
     "ReportStorageType": "azure",
-    "AzureStorageAccountEndpoint": "https://your-account.dfs.core.windows.net/",
+    "AzureStorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=youraccount;AccountKey=yourkey;EndpointSuffix=core.windows.net",
     "AzureStorageContainer": "your-container"
   }
 }
