@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Reporting;
 using Microsoft.Extensions.AI.Evaluation.Reporting.Formats.Html;
@@ -7,16 +8,30 @@ using Microsoft.Extensions.Logging;
 
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Reporting;
 
-public class DiskReportStorageStrategy(ILogger<DiskReportStorageStrategy> logger, IConfiguration configuration) : IReportStorageStrategy
+public class DiskReportStorageStrategy : IReportStorageStrategy
 {
+    private readonly ActivitySource _activitySource;
+    private readonly ILogger<DiskReportStorageStrategy> _logger;
+    private readonly IConfiguration _configuration;
+
+    public DiskReportStorageStrategy(ILogger<DiskReportStorageStrategy> logger, IConfiguration configuration)
+    {
+        _logger = logger;
+        _configuration = configuration;
+        _activitySource = new ActivitySource(GetType().FullName!);
+    }
+
     public Task<ReportingConfiguration> CreateConfigurationAsync(IEnumerable<IEvaluator> evaluators)
     {
+        using Activity? activity = _activitySource.StartActivity(nameof(CreateConfigurationAsync));
         string projectRoot = Directory.GetCurrentDirectory();
-        string storagePath = configuration["EvaluationResultsPath"] ?? Path.Combine(projectRoot, "EvaluationResults");
+        string storagePath = _configuration["EvaluationResultsPath"] ?? Path.Combine(projectRoot, "EvaluationResults");
+        activity?.SetTag("storage.path", storagePath);
 
         if (!Directory.Exists(storagePath))
         {
-            logger.LogInformation("Creating storage directory: {StoragePath}", storagePath);
+            _logger.LogInformation("Creating storage directory: {StoragePath}", storagePath);
+            activity?.AddEvent(new ActivityEvent("Creating storage directory"));
             Directory.CreateDirectory(storagePath);
         }
 
@@ -26,24 +41,33 @@ public class DiskReportStorageStrategy(ILogger<DiskReportStorageStrategy> logger
 
     public async Task<string> WriteReportAsync(ReportingConfiguration reportingConfig, ScenarioRunResult runResult, string filename)
     {
+        using Activity? activity = _activitySource.StartActivity(nameof(WriteReportAsync), ActivityKind.Producer);
+
         string projectRoot = Directory.GetCurrentDirectory();
-        string reportDir = configuration["ReportsPath"] ?? Path.Combine(projectRoot, "Reports");        if (!Directory.Exists(reportDir))
+        string reportDir = _configuration["ReportsPath"] ?? Path.Combine(projectRoot, "Reports");        
+        activity?.SetTag("report.path", reportDir);
+
+        if (!Directory.Exists(reportDir))
         {
-            logger.LogInformation("Creating report directory: {ReportPath}", reportDir);
+            _logger.LogInformation("Creating report directory: {ReportPath}", reportDir);
+            activity?.AddEvent(new ActivityEvent("Creating report directory"));
             Directory.CreateDirectory(reportDir);
         }
 
         string reportPath = Path.Combine(reportDir, filename);
+        activity?.SetTag("report.path", reportPath);
         HtmlReportWriter writer = new(reportPath);
         
         try 
         {
-            logger.LogInformation("Writing HTML report to {ReportPath}", Path.GetFullPath(reportPath));
+            _logger.LogInformation("Writing HTML report to {ReportPath}", Path.GetFullPath(reportPath));
             await writer.WriteReportAsync([runResult]);
+            activity?.AddEvent(new ActivityEvent("Report written", tags: new ActivityTagsCollection { { "report.path", reportPath } }));
         }
         catch (IOException ex)
         {
-            logger.LogError(ex, "Failed to write HTML report to {ReportPath}: {ExMessage} ({Name})", reportPath, ex.Message, ex.GetType().Name);
+            _logger.LogError(ex, "Failed to write HTML report to {ReportPath}: {ExMessage} ({Name})", reportPath, ex.Message, ex.GetType().Name);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
         }
 

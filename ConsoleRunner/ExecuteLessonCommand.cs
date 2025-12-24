@@ -11,7 +11,7 @@ public class ExecuteLessonCommand(IServiceProvider serviceProvider, ILogger<Exec
 
     public async Task ExecuteAsync(string message, string lessonDisplayName)
     {
-        using Activity? activity = _activitySource.StartActivity(nameof(ExecuteLessonCommand));
+        using Activity? activity = _activitySource.StartActivity(nameof(ExecuteLessonCommand), ActivityKind.Consumer);
         activity?.SetTag("lesson.display_name", lessonDisplayName);
         activity?.SetTag("input.message", message);
 

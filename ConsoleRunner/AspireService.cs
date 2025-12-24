@@ -14,7 +14,7 @@ public class AspireService(ActivitySource activitySource, ILogger logger, string
         params (string Key, object? Value)[] activityTags)
     {
         // Create a named activity for better trace visibility
-        using Activity? activity = activitySource.StartActivity("Report to Aspire");
+        using Activity? activity = activitySource.StartActivity("Report to Aspire", ActivityKind.Producer);
 
         // Set activity tags
         if (activity is not null && activityTags.Length > 0)
