@@ -1,6 +1,5 @@
 using System.ClientModel;
 using System.ClientModel.Primitives;
-using System.Net.Http;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.AI;

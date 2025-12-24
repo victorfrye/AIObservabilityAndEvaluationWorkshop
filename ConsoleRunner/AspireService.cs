@@ -15,6 +15,8 @@ public class AspireService(ActivitySource activitySource, ILogger logger, string
     {
         // Create a named activity for better trace visibility
         using Activity? activity = activitySource.StartActivity("Report to Aspire", ActivityKind.Producer);
+        activity?.SetTag("output", result.Output);
+        activity?.SetTag("error", result.ErrorMessage);
 
         // Set activity tags
         if (activity is not null && activityTags.Length > 0)
@@ -26,6 +28,7 @@ public class AspireService(ActivitySource activitySource, ILogger logger, string
         }
 
         // Log the result
+        activity?.SetTag("success", result.Success);
         if (result.Success)
         {
             logger.LogInformation("Console operation successful. Input: {Input}, Output: {Output}", result.Input, result.Output);
@@ -33,9 +36,9 @@ public class AspireService(ActivitySource activitySource, ILogger logger, string
         else
         {
             logger.LogError("Console operation failed. Input: {Input}, Error: {ErrorMessage}", result.Input, result.ErrorMessage);
+            activity?.SetStatus(ActivityStatusCode.Error, result.ErrorMessage);
         }
-
-
+        
         // Serialize and output the result in a standardized format for AppHost to capture
         // Use single-line JSON for console output (regex capture works better with single-line)
         string json = JsonSerializer.Serialize(result);

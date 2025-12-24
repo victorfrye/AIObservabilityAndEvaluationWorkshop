@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Azure.Storage.Files.DataLake;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Reporting;
