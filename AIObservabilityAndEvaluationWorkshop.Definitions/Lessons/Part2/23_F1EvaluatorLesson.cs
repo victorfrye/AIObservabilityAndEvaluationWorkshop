@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 23, "F1 Evaluator", needsInput: true)]
+[Lesson(2, 23, "F1 Evaluator", needsInput: true,
+    informationalScreenTitle: "F1 Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the F1 Evaluator, which calculates the harmonic mean of precision and recall for text evaluation. It provides a balanced measure of accuracy.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "F1 Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate using F1 score:")]
 public class F1EvaluatorLesson(IChatClient chatClient, ILogger<F1EvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

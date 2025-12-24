@@ -12,6 +12,21 @@ public abstract class LessonBase
     public virtual bool NeedsInput => 
         GetType().GetCustomAttribute<LessonAttribute>()?.NeedsInput ?? true;
 
+    public virtual string? InputPromptTitle => 
+        GetType().GetCustomAttribute<LessonAttribute>()?.InputPromptTitle;
+
+    public virtual string? InputPromptMessage => 
+        GetType().GetCustomAttribute<LessonAttribute>()?.InputPromptMessage;
+
+    public virtual string? InformationalScreenTitle => 
+        GetType().GetCustomAttribute<LessonAttribute>()?.InformationalScreenTitle;
+
+    public virtual string? InformationalScreenMessage => 
+        GetType().GetCustomAttribute<LessonAttribute>()?.InformationalScreenMessage;
+
+    public virtual bool InformationalScreenSupportsMarkdown => 
+        GetType().GetCustomAttribute<LessonAttribute>()?.InformationalScreenSupportsMarkdown ?? false;
+
     private readonly ActivitySource _activitySource;
 
     protected LessonBase()

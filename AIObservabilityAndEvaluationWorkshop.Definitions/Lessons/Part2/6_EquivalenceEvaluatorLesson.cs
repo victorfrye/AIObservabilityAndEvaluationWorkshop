@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 6, "Equivalence Evaluator", needsInput: true)]
+[Lesson(2, 6, "Equivalence Evaluator", needsInput: true,
+    informationalScreenTitle: "Equivalence Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the Equivalence Evaluator, which compares generated text to ground truth to assess semantic equivalence. It checks if the response conveys the same meaning as the expected answer.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "Equivalence Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate for equivalence:")]
 public class EquivalenceEvaluatorLesson(IChatClient chatClient, ILogger<EquivalenceEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

@@ -34,9 +34,8 @@ Assembly assembly = typeof(LessonBase).Assembly;
 var lessons = assembly.GetTypes()
     .Select(t => new { Type = t, Attribute = t.GetCustomAttribute<LessonAttribute>() })
     .Where(x => x.Attribute != null)
-    .Select(x => x.Attribute!)
-    .OrderBy(a => a.Part)
-    .ThenBy(a => a.Order)
+    .OrderBy(x => x.Attribute!.Part)
+    .ThenBy(x => x.Attribute!.Order)
     .ToList();
 
 string[] appArgs = [];
@@ -163,7 +162,7 @@ consoleAppBuilder.WithCommand("start-with-input", "Start with Input", async cont
 
         // Prompt the user for lesson choice
         KeyValuePair<string, string>[] options = lessons.Select(l => 
-            new KeyValuePair<string, string>(l.DisplayName, $"{l.Part}.{l.Order} - {l.DisplayName}")).ToArray();
+            new KeyValuePair<string, string>(l.Attribute!.DisplayName, $"{l.Attribute!.Part}.{l.Attribute!.Order} - {l.Attribute!.DisplayName}")).ToArray();
 
         if (options.Length == 0)
         {
@@ -187,15 +186,35 @@ consoleAppBuilder.WithCommand("start-with-input", "Start with Input", async cont
         }
 
         string displayName = lessonResult.Data?.Value ?? options[0].Key;
-        LessonAttribute selectedLesson = lessons.First(l => l.DisplayName == displayName);
+        var selectedLessonInfo = lessons.First(l => l.Attribute!.DisplayName == displayName);
+        LessonAttribute selectedLesson = selectedLessonInfo.Attribute!;
 
         string message = "No Input needed";
         if (selectedLesson.NeedsInput)
         {
-            // Prompt the user for message
+            // Show informational screen if provided
+            if (!string.IsNullOrWhiteSpace(selectedLesson.InformationalScreenTitle) || 
+                !string.IsNullOrWhiteSpace(selectedLesson.InformationalScreenMessage))
+            {
+                await interactionService.PromptMessageBoxAsync(
+                    title: selectedLesson.InformationalScreenTitle ?? "Information",
+                    message: selectedLesson.InformationalScreenMessage ?? "",
+                    options: new MessageBoxInteractionOptions
+                    {
+                        Intent = MessageIntent.Information,
+                        EnableMessageMarkdown = selectedLesson.InformationalScreenSupportsMarkdown,
+                        PrimaryButtonText = "Continue"
+                    },
+                    cancellationToken: context.CancellationToken);
+            }
+
+            // Prompt the user for message with custom title/message if provided
+            string inputTitle = selectedLesson.InputPromptTitle ?? "Message Input";
+            string inputMessage = selectedLesson.InputPromptMessage ?? "Please enter your message:";
+            
             InteractionResult<InteractionInput> messageResult = await interactionService.PromptInputAsync(
-                title: "Message Input",
-                message: "Please enter your message:",
+                title: inputTitle,
+                message: inputMessage,
                 input: new InteractionInput
                 {
                     Name = "UserMessage",

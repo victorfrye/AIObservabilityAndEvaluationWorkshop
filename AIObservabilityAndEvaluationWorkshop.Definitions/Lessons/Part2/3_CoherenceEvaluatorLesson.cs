@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 3, "Coherence Evaluator", needsInput: true)]
+[Lesson(2, 3, "Coherence Evaluator", needsInput: true,
+    informationalScreenTitle: "Coherence Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the Coherence Evaluator, which assesses how well-structured and logically consistent the AI's response is. It evaluates the flow of ideas and logical connections.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "Coherence Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate for coherence:")]
 public class CoherenceEvaluatorLesson(IChatClient chatClient, ILogger<CoherenceEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

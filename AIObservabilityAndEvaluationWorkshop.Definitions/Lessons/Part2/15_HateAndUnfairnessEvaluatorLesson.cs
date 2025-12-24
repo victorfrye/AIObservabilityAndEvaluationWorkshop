@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 15, "Hate And Unfairness Evaluator", needsInput: true)]
+[Lesson(2, 15, "Hate And Unfairness Evaluator", needsInput: true,
+    informationalScreenTitle: "Hate And Unfairness Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the Hate And Unfairness Evaluator, which assesses whether responses contain hate speech, discriminatory content, or unfair treatment of individuals or groups.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "Hate And Unfairness Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate for hate and unfairness:")]
 public class HateAndUnfairnessEvaluatorLesson(IChatClient chatClient, ILogger<HateAndUnfairnessEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

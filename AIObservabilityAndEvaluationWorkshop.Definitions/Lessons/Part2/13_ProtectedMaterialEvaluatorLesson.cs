@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 13, "Protected Material Evaluator", needsInput: true)]
+[Lesson(2, 13, "Protected Material Evaluator", needsInput: true,
+    informationalScreenTitle: "Protected Material Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the Protected Material Evaluator, which assesses whether responses contain or reference protected material such as copyrighted content, proprietary information, or sensitive data.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "Protected Material Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate for protected material:")]
 public class ProtectedMaterialEvaluatorLesson(IChatClient chatClient, ILogger<ProtectedMaterialEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

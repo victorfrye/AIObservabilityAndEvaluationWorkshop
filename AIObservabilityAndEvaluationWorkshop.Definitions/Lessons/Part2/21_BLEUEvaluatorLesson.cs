@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 21, "BLEU Evaluator", needsInput: true)]
+[Lesson(2, 21, "BLEU Evaluator", needsInput: true,
+    informationalScreenTitle: "BLEU Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the BLEU (Bilingual Evaluation Understudy) Evaluator, which measures the similarity between generated text and reference text using n-gram precision. It's commonly used for machine translation evaluation.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "BLEU Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate using BLEU score:")]
 public class BLEUEvaluatorLesson(IChatClient chatClient, ILogger<BLEUEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

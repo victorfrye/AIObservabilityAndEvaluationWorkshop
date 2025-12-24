@@ -7,7 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 22, "GLEU Evaluator", needsInput: true)]
+[Lesson(2, 22, "GLEU Evaluator", needsInput: true,
+    informationalScreenTitle: "GLEU Evaluator",
+    informationalScreenMessage: "This lesson demonstrates the GLEU (Google's BLEU) Evaluator, an improved version of BLEU that provides better evaluation for text generation tasks by considering both precision and recall of n-grams.",
+    informationalScreenSupportsMarkdown: false,
+    inputPromptTitle: "GLEU Evaluator - Message Input",
+    inputPromptMessage: "Enter a message to evaluate using GLEU score:")]
 public class GLEUEvaluatorLesson(IChatClient chatClient, ILogger<GLEUEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)

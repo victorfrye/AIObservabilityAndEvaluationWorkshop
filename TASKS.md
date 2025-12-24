@@ -2,10 +2,11 @@
 
 This file contains tasks left for constructing the workshop.
 
-- [ ] Add an optional pre-run message box with info / context.
-- [ ] Allow customizing the message prompt
+- [x] Add an optional pre-run message box with info / context.
+- [x] Allow customizing the message prompt
 - [ ] Add any necessary slides
 - [ ] Finalize setup
+- [ ] Review all code
 - [ ] Exercise 1 Details
 - [ ] Exercise 2 Details
 - [ ] Exercise 3 Details
@@ -18,6 +19,7 @@ This file contains tasks left for constructing the workshop.
 
 - [ ] Add events to the OpenTelemetry lesson
 - [ ] Add activity kinds to the OpenTelemetry lesson
+- [ ] Add additional instrumentation / metrics for tool call analytics
 
 ## Reporting
 
