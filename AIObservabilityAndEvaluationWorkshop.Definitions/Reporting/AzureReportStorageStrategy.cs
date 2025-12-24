@@ -31,7 +31,7 @@ public class AzureReportStorageStrategy(IConfiguration configuration, ILogger<Az
         return Task.FromResult(reportingConfig);
     }
 
-    public Task<string> WriteReportAsync(ReportingConfiguration reportingConfig, ScenarioRunResult runResult)
+    public Task<string> WriteReportAsync(ReportingConfiguration reportingConfig, ScenarioRunResult runResult, string filename)
     {
         // AzureStorageReportingConfiguration handles storage automatically when results are evaluated or stored.
         // However, we might still want to return a URL if possible, or a message.

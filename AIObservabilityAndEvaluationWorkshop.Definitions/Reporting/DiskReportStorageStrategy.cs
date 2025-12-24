@@ -7,14 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Reporting;
 
-public class DiskReportStorageStrategy(IConfiguration configuration, ILogger<DiskReportStorageStrategy> logger) : IReportStorageStrategy
+public class DiskReportStorageStrategy(ILogger<DiskReportStorageStrategy> logger, IConfiguration configuration) : IReportStorageStrategy
 {
     public Task<ReportingConfiguration> CreateConfigurationAsync(IEnumerable<IEvaluator> evaluators)
     {
         string projectRoot = Directory.GetCurrentDirectory();
         string storagePath = configuration["EvaluationResultsPath"] ?? Path.Combine(projectRoot, "EvaluationResults");
-
-        if (!Path.IsPathRooted(storagePath)) storagePath = Path.GetFullPath(storagePath, projectRoot);
 
         if (!Directory.Exists(storagePath))
         {
@@ -26,19 +24,16 @@ public class DiskReportStorageStrategy(IConfiguration configuration, ILogger<Dis
         return Task.FromResult(new ReportingConfiguration(evaluators, store));
     }
 
-    public async Task<string> WriteReportAsync(ReportingConfiguration reportingConfig, ScenarioRunResult runResult)
+    public async Task<string> WriteReportAsync(ReportingConfiguration reportingConfig, ScenarioRunResult runResult, string filename)
     {
         string projectRoot = Directory.GetCurrentDirectory();
-        string reportPath = configuration["ReportsPath"] ?? Path.Combine(projectRoot, "Reports");
-
-        if (!Path.IsPathRooted(reportPath)) reportPath = Path.GetFullPath(reportPath, projectRoot);
-
-        if (!Directory.Exists(reportPath))
+        string reportDir = configuration["ReportsPath"] ?? Path.Combine(projectRoot, "Reports");        if (!Directory.Exists(reportDir))
         {
-            logger.LogInformation("Creating report directory: {ReportPath}", reportPath);
-            Directory.CreateDirectory(reportPath);
+            logger.LogInformation("Creating report directory: {ReportPath}", reportDir);
+            Directory.CreateDirectory(reportDir);
         }
 
+        string reportPath = Path.Combine(reportDir, filename);
         HtmlReportWriter writer = new(reportPath);
         
         try 
@@ -46,15 +41,12 @@ public class DiskReportStorageStrategy(IConfiguration configuration, ILogger<Dis
             logger.LogInformation("Writing HTML report to {ReportPath}", Path.GetFullPath(reportPath));
             await writer.WriteReportAsync([runResult]);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (IOException ex)
         {
-            logger.LogError(ex, "Failed to write HTML report to disk due to permission error.");
+            logger.LogError(ex, "Failed to write HTML report to {ReportPath}: {ExMessage} ({Name})", reportPath, ex.Message, ex.GetType().Name);
             throw;
         }
 
-        string[] files = Directory.GetFiles(reportPath, "*.html", SearchOption.AllDirectories);
-        string? htmlFile = files.FirstOrDefault(f => f.EndsWith("index.html")) ?? files.FirstOrDefault();
-        
-        return htmlFile != null ? Path.GetFullPath(htmlFile) : Path.Combine(Path.GetFullPath(reportPath), "index.html");
+        return new FileInfo(reportPath).FullName.Replace('\\', '/');
     }
 }

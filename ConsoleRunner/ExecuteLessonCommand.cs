@@ -30,7 +30,7 @@ public class ExecuteLessonCommand(IServiceProvider serviceProvider, ILogger<Exec
                 lessonDisplayName,
                 ("message", message),
                 ("lesson.display_name", lessonDisplayName),
-                ("command.name", "execute-lesson")
+                ("command.name", "execute")
             );
             return;
         }
@@ -49,7 +49,7 @@ public class ExecuteLessonCommand(IServiceProvider serviceProvider, ILogger<Exec
                 lessonDisplayName,
                 ("message", message),
                 ("lesson.display_name", lessonDisplayName),
-                ("command.name", "execute-lesson")
+                ("command.name", "execute")
             );
             
             throw;
@@ -61,7 +61,7 @@ public class ExecuteLessonCommand(IServiceProvider serviceProvider, ILogger<Exec
             result,
             ("message", message),
             ("lesson.display_name", lessonDisplayName),
-            ("command.name", "execute-lesson")
+            ("command.name", "execute")
         );
     }
 }

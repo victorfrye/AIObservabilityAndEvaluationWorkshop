@@ -212,7 +212,7 @@ consoleAppBuilder.WithCommand("start-with-input", "Start with Input", async cont
             message = messageResult.Data?.Value ?? "Hello, World!";
         }
 
-        appArgs = ["execute-lesson", message, displayName];
+        appArgs = ["execute", message, displayName];
 
         Console.WriteLine($"AppHost: Starting console app with args: {string.Join(", ", appArgs)}");
 

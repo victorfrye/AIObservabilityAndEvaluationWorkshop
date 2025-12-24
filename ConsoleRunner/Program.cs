@@ -37,8 +37,8 @@ TelemetryDiagnostics.LogOtelEnvironmentVariables(host.Services.GetRequiredServic
 
 await host.StartAsync();
 
-// Add the execute-lesson command that allows users to send an input in through a message parameter
- Command executeLessonCommand = new("execute-lesson", "Execute a lesson with a message");
+// Add the execute command that allows users to send an input in through a message parameter
+ Command executeLessonCommand = new("execute", "Execute a lesson with a message");
 Argument<string> messageArgument = new ("message", "The message to pass to the lesson");
 Argument<string> lessonDisplayNameArgument = new ("lesson-display-name", "The lesson display name");
 executeLessonCommand.AddArgument(messageArgument);
