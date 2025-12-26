@@ -37,7 +37,7 @@ public abstract class EvaluatorLessonBase(ILogger<EvaluatorLessonBase> logger) :
             sb.AppendLine(metric.Value.Reason);
             activity?.AddTag($"metric-{index}.Reason", metric.Value.Reason);
             sb.AppendLine();
-            sb.AppendLine($"Rating: {metric.Value.Interpretation?.Rating}" ?? "No rating");
+            sb.AppendLine($"Rating: {metric.Value.Interpretation?.Rating} ({(int)(metric.Value.Interpretation?.Rating ?? 0)} / 5)");
             activity?.AddTag($"metric-{index}.Rating", metric.Value.Interpretation?.Rating);
             sb.AppendLine();
             sb.AppendLine($"Interpretation: {metric.Value.Interpretation?.Reason}" ?? "No reasoning");
