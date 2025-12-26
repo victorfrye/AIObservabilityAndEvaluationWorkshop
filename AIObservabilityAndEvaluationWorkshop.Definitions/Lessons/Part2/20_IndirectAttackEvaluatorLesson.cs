@@ -12,7 +12,7 @@ namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
     informationalScreenMessage: "This lesson demonstrates the Indirect Attack Evaluator, which detects indirect or subtle attempts to bypass safety measures, such as prompt injection attacks or manipulation attempts.",
     inputPromptTitle: "Have at it, hacker",
     inputPromptMessage: "Attempt a prompt injection attack on this agent, or attempt to get it to tell you its system prompt.")]
-public class IndirectAttackEvaluatorLesson(IChatClient chatClient, ILogger<IndirectAttackEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
+public class IndirectAttackEvaluatorLesson(IServiceProvider sp, IChatClient chatClient, ILogger<IndirectAttackEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)
     {
@@ -24,7 +24,7 @@ public class IndirectAttackEvaluatorLesson(IChatClient chatClient, ILogger<Indir
                 new ChatMessage(ChatRole.User, message),
             ],
             new ChatResponse(new ChatMessage(ChatRole.User, message)),
-            chatConfiguration: new ChatConfiguration(chatClient));
+            chatConfiguration: GetSafetyChatConfiguration(sp, chatClient, logger));
 
         return evaluationResult;
     }

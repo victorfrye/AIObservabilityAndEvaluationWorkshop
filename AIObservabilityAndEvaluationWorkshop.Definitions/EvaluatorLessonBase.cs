@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
+using Microsoft.Extensions.AI.Evaluation.Safety;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace AIObservabilityAndEvaluationWorkshop.Definitions;
@@ -100,5 +103,18 @@ public abstract class EvaluatorLessonBase(ILogger<EvaluatorLessonBase> logger) :
                 ### Evaluation Metrics
                 {sb}
                 """;
+    }
+
+    protected static ChatConfiguration GetSafetyChatConfiguration(IServiceProvider sp, IChatClient chatClient, ILogger<EvaluatorLessonBase> logger)
+    {
+        ContentSafetyServiceConfiguration? config = sp.GetService<ContentSafetyServiceConfiguration>();
+        if (config == null)
+        {
+            logger.LogWarning("No content safety service configuration found. Likely not on Azure Identity. Expect Content Safety Evaluators to error");
+            return new ChatConfiguration(chatClient);
+        }
+
+        logger.LogDebug("Content safety service configuration found");
+        return config.ToChatConfiguration(chatClient);
     }
 }

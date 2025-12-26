@@ -11,6 +11,7 @@ This file contains tasks left for constructing the workshop.
 - [ ] Exercise 2 Details
 - [ ] Exercise 3 Details
 - [ ] Exercise 4 Details
+- [ ] Azure Identity Authentication
 - [x] Setup Azure resources on Legion Go
 - [ ] Setup OpenAI resources on Legion Go (Due 12/27/25)
 - [ ] Verify works with OpenAI (Due 12/27/25)
@@ -36,6 +37,7 @@ This file contains tasks left for constructing the workshop.
  
 - [ ] Unit Testing with Evaluators
 - [ ] Custom Evaluator: BrevityEvaluator
+- [ ] Adding metrics and diagnostics
 
 ### Quality
 

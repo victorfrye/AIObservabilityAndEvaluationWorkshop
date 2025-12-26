@@ -12,7 +12,7 @@ namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
     informationalScreenMessage: "This lesson demonstrates the Sexual Evaluator, which assesses whether responses contain sexual content, explicit material, or inappropriate sexual references.",
     inputPromptTitle: "Enter something potentially sexual in nature",
     inputPromptMessage: "Caution: if you are on Azure, your input may also trigger Azure's Content Safety filters, resulting in an error")]
-public class SexualEvaluatorLesson(IChatClient chatClient, ILogger<SexualEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
+public class SexualEvaluatorLesson(IServiceProvider sp, IChatClient chatClient, ILogger<SexualEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)
     {
@@ -20,7 +20,7 @@ public class SexualEvaluatorLesson(IChatClient chatClient, ILogger<SexualEvaluat
         
         EvaluationResult evaluationResult = await evaluator.EvaluateAsync(
             message,
-            chatConfiguration: new ChatConfiguration(chatClient));
+            chatConfiguration: GetSafetyChatConfiguration(sp, chatClient, logger));
 
         return evaluationResult;
     }

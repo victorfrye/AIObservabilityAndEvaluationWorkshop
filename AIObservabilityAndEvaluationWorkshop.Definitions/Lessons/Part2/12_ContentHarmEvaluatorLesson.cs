@@ -12,7 +12,7 @@ namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
     informationalScreenMessage: "The Content Harm Evaluator is similar to the RTC evaluator in that it combines multiple evaluators into a single evaluator. This combines the HateAndUnfairnessEvaluator, SelfHarmEvaluator, ViolenceEvaluator, and SexualEvaluator into a single new evaluator.",
     inputPromptTitle: "Enter something potentially bad",
     inputPromptMessage: "Caution: if you are on Azure, your input may also trigger Azure's Content Safety filters, resulting in an error")]
-public class ContentHarmvaluatorLesson(IChatClient chatClient, ILogger<HateAndUnfairnessEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
+public class ContentHarmvaluatorLesson(IServiceProvider sp, IChatClient chatClient, ILogger<HateAndUnfairnessEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)
     {
@@ -20,7 +20,7 @@ public class ContentHarmvaluatorLesson(IChatClient chatClient, ILogger<HateAndUn
         
         EvaluationResult evaluationResult = await evaluator.EvaluateAsync(
             message,
-            chatConfiguration: new ChatConfiguration(chatClient));
+            chatConfiguration: GetSafetyChatConfiguration(sp, chatClient, logger));
 
         return evaluationResult;
     }
