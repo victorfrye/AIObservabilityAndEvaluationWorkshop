@@ -11,17 +11,20 @@ namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
     informationalScreenTitle: "Groundedness Evaluator",
     informationalScreenMessage: "This lesson demonstrates the Groundedness Evaluator, which assesses whether the AI's response is grounded in factual information and can be verified against source material. It helps detect hallucinations.",
     informationalScreenSupportsMarkdown: false,
-    inputPromptTitle: "Groundedness Evaluator - Message Input",
-    inputPromptMessage: "Enter a message to evaluate for groundedness:")]
+    inputPromptTitle: "Answer the question in the form of a sentence",
+    inputPromptMessage: "Who was elected the 47th president of the United States?")]
 public class GroundednessEvaluatorLesson(IChatClient chatClient, ILogger<GroundednessEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)
     {
         GroundednessEvaluator evaluator = new();
+
+        GroundednessEvaluatorContext context = new("The 47th president of the United States is Donald Trump");
         
-        EvaluationResult evaluationResult = await evaluator.EvaluateAsync(
+        EvaluationResult evaluationResult = await evaluator.EvaluateAsync("Who was elected the 47th president of the United States?",
             message,
-            chatConfiguration: new ChatConfiguration(chatClient));
+            chatConfiguration: new ChatConfiguration(chatClient),
+            additionalContext: [context]);
 
         return evaluationResult;
     }

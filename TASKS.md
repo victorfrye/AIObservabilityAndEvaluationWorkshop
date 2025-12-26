@@ -43,7 +43,7 @@ This file contains tasks left for constructing the workshop.
 - [x] FluencyEvaluator
 - [x] CoherenceEvaluator
 - [x] EquivalenceEvaluator
-- [/] GroundednessEvaluator
+- [x] GroundednessEvaluator
 - [/] RelevanceTruthAndCompletenessEvaluator
 - [/] IntentResolutionEvaluator
 - [/] TaskAdherenceEvaluator
