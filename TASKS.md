@@ -37,7 +37,7 @@ This file contains tasks left for constructing the workshop.
 
 ### Quality
 
-- [/] RelevanceEvaluator
+- [x] RelevanceEvaluator
 - [x] CompletenessEvaluator
 - [/] RetrievalEvaluator
 - [x] FluencyEvaluator

@@ -11,15 +11,15 @@ namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
     informationalScreenTitle: "Relevance Evaluator",
     informationalScreenMessage: "This lesson demonstrates the Relevance Evaluator, which assesses how relevant the AI's response is to the user's query. It checks if the response addresses the actual question asked.",
     informationalScreenSupportsMarkdown: false,
-    inputPromptTitle: "Relevance Evaluator - Message Input",
-    inputPromptMessage: "Enter a message to evaluate for relevance:")]
+    inputPromptTitle: "Your Answer",
+    inputPromptMessage: "Respond to the question 'How many git branches must a nerd pull down before you can call them a nerd?':")]
 public class RelevanceEvaluatorLesson(IChatClient chatClient, ILogger<RelevanceEvaluatorLesson> logger) : EvaluatorLessonBase(logger)
 {
     protected override async Task<EvaluationResult> EvaluateAsync(string message)
     {
         RelevanceEvaluator evaluator = new();
         
-        EvaluationResult evaluationResult = await evaluator.EvaluateAsync(
+        EvaluationResult evaluationResult = await evaluator.EvaluateAsync("How many git branches must a nerd pull down before you can call them a nerd?",
             message,
             chatConfiguration: new ChatConfiguration(chatClient));
 
