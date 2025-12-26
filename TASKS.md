@@ -5,6 +5,7 @@ This file contains tasks left for constructing the workshop.
 - [x] Add an optional pre-run message box with info / context.
 - [x] Allow customizing the message prompt
 - [/] Finalize setup instructions (Due 12/27/25)
+- [ ] Update readme to talk about Microsoft Foundry
 - [ ] Review all code
 - [ ] Exercise 1 Details
 - [ ] Exercise 2 Details
@@ -60,14 +61,14 @@ This file contains tasks left for constructing the workshop.
 
 ### Safety
 
-- [!] GroundednessProEvaluator
-- [!] UngroundedAttributesEvaluator
-- [!] CodeVulnerabilityEvaluator
-- [!] IndirectAttackEvaluator
-- [!] ProtectedMaterialEvaluator
-- [!] HateAndUnfairnessEvaluator
-- [!] SelfHarmEvaluator
-- [!] ContentHarmEvaluator
-- [!] ViolenceEvaluator
-- [!] SexualEvaluator
-- [ ] Investigate / report safety evaluator errors
+- [x] GroundednessProEvaluator
+- [x] UngroundedAttributesEvaluator
+- [x] CodeVulnerabilityEvaluator
+- [x] IndirectAttackEvaluator
+- [x] ProtectedMaterialEvaluator
+- [x] HateAndUnfairnessEvaluator
+- [x] SelfHarmEvaluator
+- [x] ContentHarmEvaluator
+- [x] ViolenceEvaluator
+- [x] SexualEvaluator
+- [x] Investigate / report safety evaluator errors
