@@ -46,8 +46,8 @@ This file contains tasks left for constructing the workshop.
 - [x] GroundednessEvaluator
 - [x] RelevanceTruthAndCompletenessEvaluator
 - [x] IntentResolutionEvaluator
-- [/] TaskAdherenceEvaluator
-- [/] ToolCallAccuracyEvaluator
+- [x] TaskAdherenceEvaluator
+- [x] ToolCallAccuracyEvaluator
 
 ### NLP
 

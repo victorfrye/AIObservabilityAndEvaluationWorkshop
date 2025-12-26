@@ -1,6 +1,5 @@
 #pragma warning disable AIEVAL001 // Experimental evaluator
 using System.ComponentModel;
-using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -10,9 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 9, "Intent Resolution Evaluator", needsInput: true,
-    informationalScreenTitle: "Intent Resolution Evaluator",
-    informationalScreenMessage: "This lesson demonstrates the Intent Resolution Evaluator, which assesses how well the AI understands and correctly addresses the user's intent behind their query.",
+[Lesson(2, 9, "Tool Call Evaluators", needsInput: true,
+    informationalScreenTitle: "Tool Call Evaluators",
+    informationalScreenMessage: "This lesson demonstrates the Intent Resolution, Tool Call Accuracy, and Task Aherence Evaluators, which assesses how well the AI understands and correctly addresses the user's intent behind their query to complete a task.",
     informationalScreenSupportsMarkdown: false,
     inputPromptTitle: "What do you want to do?",
     inputPromptMessage: "Welcome to the space ship USS Disapproving. You're talking to the ship's AI. Try talking to it about the pod bay doors, warp drive, or neurotoxin deployment systems.")]
@@ -40,7 +39,9 @@ public class IntentResolutionEvaluatorLesson(IChatClient chatClient, ILogger<Int
             AIFunctionFactory.Create(DeployNeurotoxin),
         ];
 
-        IntentResolutionEvaluatorContext context = new(toolDefinitions);
+        IntentResolutionEvaluatorContext intentContext = new(toolDefinitions);
+        TaskAdherenceEvaluatorContext taskContext = new(toolDefinitions);
+        ToolCallAccuracyEvaluatorContext toolCallAccuracyContext = new(toolDefinitions);
 
         List<ChatMessage> messages =
         [
@@ -57,13 +58,18 @@ public class IntentResolutionEvaluatorLesson(IChatClient chatClient, ILogger<Int
         
         // Get the assistant's reaction to the user input
         ChatResponse response = await chatClient.GetResponseAsync(message, options);
-        
+
+        // Evaluate both task adherence and intent resolution
+        TaskAdherenceEvaluator taskEvaluator = new();
+        ToolCallAccuracyEvaluator accuracyEvaluator = new();
+        IntentResolutionEvaluator intentEvaluator = new();
+        CompositeEvaluator compositeEvaluator = new(taskEvaluator, accuracyEvaluator, intentEvaluator);
+
         // Evaluate that reaction for correct tool call invocations
-        IntentResolutionEvaluator evaluator = new();
-        EvaluationResult evaluationResult = await evaluator.EvaluateAsync(messages,
+        EvaluationResult evaluationResult = await compositeEvaluator.EvaluateAsync(messages,
             response,
             chatConfiguration: new ChatConfiguration(chatClient),
-            additionalContext: [context]);
+            additionalContext: [intentContext, taskContext, toolCallAccuracyContext]);
 
         return evaluationResult;
     }
