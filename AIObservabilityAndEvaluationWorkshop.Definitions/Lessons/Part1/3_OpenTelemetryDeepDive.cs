@@ -40,7 +40,7 @@ public class OpenTelemetryDeepDive : LessonBase
         
         try
         {
-            using Activity? activity = _activitySource.StartActivity("DeepDive.ProcessMessage");
+            using Activity? activity = _activitySource.StartActivity("DeepDive.ProcessMessage", ActivityKind.Consumer);
             activity?.SetTag("message.content", message);
             activity?.AddEvent(new ActivityEvent("Message processing started"));
 
@@ -67,7 +67,7 @@ public class OpenTelemetryDeepDive : LessonBase
             // Simulate Step 3: AI Processing (mocked)
             await RunStepWithActivityAsync("AIProcessing", async () =>
             {
-                using Activity? innerActivity = _activitySource.StartActivity("LargeLanguageModel.Inference");
+                using Activity? innerActivity = _activitySource.StartActivity("LargeLanguageModel.Inference", ActivityKind.Client);
                 innerActivity?.SetTag("model.name", "gpt-4o");
                 innerActivity?.SetTag("tokens.prompt", message.Length / 4);
                 
@@ -77,9 +77,20 @@ public class OpenTelemetryDeepDive : LessonBase
                 innerActivity?.AddEvent(new ActivityEvent("Inference completed"));
             });
 
+            // Simulate Step 4: Analytics (mocked)
+            await RunStepWithActivityAsync("Storing Analytics info", async () =>
+            {
+                using Activity? innerActivity = _activitySource.StartActivity("AnalyticsStore", ActivityKind.Producer);
+                
+                await Task.Delay(250); // Simulate timeout
+
+                innerActivity?.AddEvent(new ActivityEvent("Timeout occurred"));
+                innerActivity?.SetStatus(ActivityStatusCode.Error, "Analyitcs store is currently offline.");
+            });
+
             activity?.AddEvent(new ActivityEvent("Message processing finished"));
             
-            return $"Deep Dive Complete! Processed message: '{message}' with full OTel instrumentation.";
+            return "Created simulated telemetry traces. Open the **Traces** view to explore OpenTelemetry features";
         }
         finally
         {

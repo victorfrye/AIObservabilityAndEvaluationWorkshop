@@ -17,11 +17,12 @@ This file contains tasks left for constructing the workshop.
 - [x] Verify works with OpenAI (Due 12/27/25)
 - [ ] Intro Slide
 - [ ] Feedback Slide
+- [ ] Reorder / Renumber sections
 
 ## Chat
 
-- [ ] Add events to the OpenTelemetry lesson
-- [ ] Add activity kinds to the OpenTelemetry lesson
+- [x] Add events to the OpenTelemetry lesson
+- [x] Add activity kinds to the OpenTelemetry lesson
 - [ ] Add additional instrumentation / metrics for tool call analytics
 
 ## Reporting
