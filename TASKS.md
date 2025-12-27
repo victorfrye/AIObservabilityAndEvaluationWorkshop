@@ -23,13 +23,13 @@ This file contains tasks left for constructing the workshop.
 
 - [x] Add events to the OpenTelemetry lesson
 - [x] Add activity kinds to the OpenTelemetry lesson
-- [ ] Add additional instrumentation / metrics for tool call analytics
+- [ ] Add additional instrumentation / metrics for tool call analytics (Stretch)
 
 ## Evaluators
  
 - [ ] Unit Testing with Evaluators
-- [ ] Custom Evaluator: BrevityEvaluator
-- [ ] Adding metrics and diagnostics
+- [ ] Custom Evaluator: BrevityEvaluator (Stretch)
+- [ ] Adding metrics and diagnostics (Stretch)
 
 ### Quality
 
@@ -68,8 +68,7 @@ This file contains tasks left for constructing the workshop.
 ## Reporting
 
 - [ ] Get Azure Storage working (Stretch)
-- [ ] Get Custom Storage working (Stretch)
-- [ ] Multiple evaluators in a report
-- [ ] Trends over time
+- [x] Multiple evaluators in a report
+- [x] Trends over time
 - [ ] Model Selection
 - [ ] Prompt Selection

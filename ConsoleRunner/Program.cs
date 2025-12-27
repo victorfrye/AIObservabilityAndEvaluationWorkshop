@@ -3,8 +3,6 @@ using System.Diagnostics;
 using AIObservabilityAndEvaluationWorkshop.ConsoleRunner;
 using AIObservabilityAndEvaluationWorkshop.Definitions;
 using AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
-using Microsoft.Extensions.AI.Evaluation.Reporting;
-using Microsoft.Extensions.AI.Evaluation.Reporting.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -14,29 +12,10 @@ HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddScoped<ExecuteLessonCommand>();
 
-builder.Services.AddConfiguredChatClient(builder.Configuration);
+builder.Services.AddConfiguredChatClient(builder.Configuration); // Custom extension method
+builder.AddReportStorage(); // Custom extension method
 
-if (builder.Configuration["ReportStorageType"]?.ToLowerInvariant() == "azure")
-{
-    //builder.Services.AddScoped<IEvaluationResultStore, AzureReportStorageStrategy>();
-    throw new NotImplementedException("Azure storage coming soon");
-}
-else
-{
-    builder.Services.AddScoped<IEvaluationResultStore>(_ =>
-    {
-        string path = builder.Configuration["ReportsPath"] ?? throw new InvalidOperationException("Ensure ReportsPath is configured");
-        
-        // Get an asbolute path if this is a relative reference.
-        if (!Path.IsPathRooted(path))
-        {
-            path = Path.GetFullPath( path, Environment.CurrentDirectory);
-        }
-        
-        return new DiskBasedResultStore(path);
-    });
-}
-
+// Use Scrutor to auto-register our lesson classes
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<HelloWorkshop>()
     .AddClasses(classes => classes.AssignableTo<LessonBase>())

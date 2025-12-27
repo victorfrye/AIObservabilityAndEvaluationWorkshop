@@ -1,80 +1,69 @@
-/*
-using System.Reflection;
-using AIObservabilityAndEvaluationWorkshop.Definitions.Reporting;
+
 using JetBrains.Annotations;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.AI.Evaluation.Reporting;
 using Microsoft.Extensions.AI.Evaluation.Reporting.Formats.Html;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+#pragma warning disable AIEVAL001
 
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(3, 2, "Multiple Scenarios", needsInput: true,
-    informationalScreenTitle: "Multiple Scenarios",
+[Lesson(3, 2, "Multiple Evaluators", needsInput: true,
+    informationalScreenTitle: "Multiple Evaluators",
     informationalScreenMessage: "This lesson uses multiple evaluators in the same scenario run, including evaluators requiring context.",
     inputPromptTitle: "What conference and room did this session take place?",
     inputPromptMessage: "Enter a sentence answering the sample prompt")]
-public class MultipleEvaluatorsLesson(IReportStorageStrategy storageStrategy, IChatClient chatClient) : LessonBase
+public class MultipleEvaluatorsLesson(
+    IChatClient chatClient,
+    IConfiguration configuration,
+    ILogger<ReportGenerationLesson> logger,
+    IEvaluationResultStore resultStore) : ReportLessonBase(chatClient, configuration)
 {
     protected override async Task<string> RunAsync(string message)
     {
-        ReportingConfiguration reportingConfig = await storageStrategy.CreateConfigurationAsync([
-            new FluencyEvaluator(),
-            new CoherenceEvaluator(),
-            new EquivalenceEvaluator()
-        ], );
-
-        await ExecuteEvaluationScenarioAsync(message, reportingConfig);
-
-        // Enumerate the last 5 executions and add them to our list we'll use for reporting
-        List<ScenarioRunResult> results = [];
-        await foreach (var name in reportingConfig.ResultStore.GetLatestExecutionNamesAsync(count: 5))
-        {
-            await foreach (var result in reportingConfig.ResultStore.ReadResultsAsync(name))
-            {
-                results.Add(result);
-            }
-        }
+        IEvaluator rtcEval = new RelevanceTruthAndCompletenessEvaluator();
+        IEvaluator equivalenceEval = new EquivalenceEvaluator();
+        IEvaluator groundednessEval = new GroundednessEvaluator(); // Note: you could use GroundednessPro and UngroundedAttributes here if you have Content Safety connected
         
-        string filename = GetReportFilename();
-        
-        IEvaluationReportWriter writer = new HtmlReportWriter(filename);
-        await writer.WriteReportAsync(results);
+        ReportingConfiguration reportConfig = new([equivalenceEval, groundednessEval, rtcEval], 
+            resultStore, 
+            executionName: nameof(MultipleEvaluatorsLesson),
+            chatConfiguration: GetChatConfiguration(), 
+            tags: ["CodeMash"]);
 
-        // Return the link in markdown format
-        return $"""
-               ### Evaluation Complete
-               
-               Evaluation report completed.
-               
-               **Report location:**
-               [{fullPath}]({fullPath})
-               """;    }
-
-    private string GetReportFilename()
-    {
-        LessonAttribute lessonAttribute = GetType().GetCustomAttribute<LessonAttribute>()!;
-        int part = lessonAttribute.Part;
-        int order = lessonAttribute.Order;
-        string filename = $"{part}_{order}_Report.html";
-        return filename;
-    }
-
-    private static async Task ExecuteEvaluationScenarioAsync(string message, ReportingConfiguration reportingConfig)
-    {
-        await using ScenarioRun run = await reportingConfig.CreateScenarioRunAsync(
-            scenarioName: "Multiple Evaluators",
-            iterationName: DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-
-        List<ChatMessage> messages = [
-            new ChatMessage(ChatRole.System, "You are a helpful AI assistant that briefly answers questions using available facts."),
-            new ChatMessage(ChatRole.User, "What conference and room did this session take place?")
+        string groundTruth = "This session took place in Indigo Bay at CodeMash 2026";
+        EvaluationContext[] context =
+        [
+            new EquivalenceEvaluatorContext(groundTruth),
+            new GroundednessEvaluatorContext(groundTruth)
+            // Note: RTC does not require additional context
         ];
+        
+        ChatMessage[] messages =
+        [
+            new(ChatRole.System, "You are a helpful assistant providing information. Please be curteous and professional at all times."),
+            new(ChatRole.User, "What conference and room did this session take place?")
+        ];
+        ChatResponse response = new(new ChatMessage(ChatRole.Assistant, message));
+        
+        await EvaluateAsync("Groundedness and Equivalence Check for Conference and Room", reportConfig, messages, response, additionalContext: context);
 
-        EquivalenceEvaluatorContext context = new("This session occurred in the Indigo Bay room at CodeMash 2026.");
-        await run.EvaluateAsync(messages, new ChatResponse(new ChatMessage(ChatRole.Assistant, message)), additionalContext: [context]);
+        IEnumerable<ScenarioRunResult> results = await GetLatestResultsAsync(reportConfig);
+        
+        string filename = GetReportFileName();
+        logger.LogDebug("Using report filename {Filename}", filename);
+        
+        string path = GetReportPath(filename);
+        logger.LogDebug("Using report location {Path}", path);
+
+        HtmlReportWriter writer = new(path);
+        await writer.WriteReportAsync(results);
+        
+        return GetReportMarkdown(path);
     }
 }
-*/

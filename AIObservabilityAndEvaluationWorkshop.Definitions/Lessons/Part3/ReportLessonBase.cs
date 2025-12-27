@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
-public abstract class ReportLessonBase(IChatClient chatClient) : LessonBase
+public abstract class ReportLessonBase(IChatClient chatClient, IConfiguration configuration) : LessonBase
 {
     protected static async Task<IEnumerable<ScenarioRunResult>> GetLatestResultsAsync(ReportingConfiguration reportConfig, int count = 5)
     {
@@ -22,21 +22,17 @@ public abstract class ReportLessonBase(IChatClient chatClient) : LessonBase
         return results;
     }
 
-    protected async Task GetResponseAndEvaluateAsync(string message, string scenarioName, ReportingConfiguration reportConfig)
+    protected async Task GetResponseAndEvaluateAsync(string scenarioName, ReportingConfiguration reportConfig, ChatMessage[] messages, IEnumerable<EvaluationContext>? additionalContext = null)
     {
-        ScenarioRun run = await reportConfig.CreateScenarioRunAsync(scenarioName: scenarioName,
-            iterationName: GetDiskFriendlyDateString());
-
-        ChatMessage[] messages =
-        [
-            new ChatMessage(ChatRole.System, "You are a helpful assistant providing information about products on a corporate website. Please be curteous and professional at all times."),
-            new ChatMessage(ChatRole.User, message)
-        ];
-
         ChatResponse response = await chatClient.GetResponseAsync(messages);
 
-        await run.EvaluateAsync(messages, response);
-        
+        await EvaluateAsync(scenarioName, reportConfig, messages, response, additionalContext);
+    }
+
+    protected static async Task EvaluateAsync(string scenarioName, ReportingConfiguration reportConfig, ChatMessage[] messages, ChatResponse response, IEnumerable<EvaluationContext>? additionalContext = null, IEnumerable<string>? tags = null)
+    {
+        ScenarioRun run = await reportConfig.CreateScenarioRunAsync(scenarioName: scenarioName, iterationName: GetDiskFriendlyDateString(), additionalTags: tags);
+        await run.EvaluateAsync(messages, response, additionalContext);
         await run.DisposeAsync(); // ensure it gets flushed / fully written
     }
     
@@ -50,4 +46,26 @@ public abstract class ReportLessonBase(IChatClient chatClient) : LessonBase
     
     private static string GetDiskFriendlyDateString() => DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
+    protected string GetReportPath(string filename)
+    {
+        // Get an asbolute path if this is a relative reference.
+        string path = configuration["ReportsPath"] ?? "Reports";
+        if (!Path.IsPathRooted(path))
+        {
+            path = Path.GetFullPath(path, Environment.CurrentDirectory);
+        }
+        path = Path.Combine(path, filename);
+        return path;
+    }
+
+    protected static string GetReportMarkdown(string path)
+    {
+        Uri uri = new Uri(path);
+        return $"""
+                ### Evaluation and Report Generation Complete
+
+                **Report location:**
+                [{uri.AbsoluteUri}]({uri.AbsoluteUri})
+                """;
+    }
 }

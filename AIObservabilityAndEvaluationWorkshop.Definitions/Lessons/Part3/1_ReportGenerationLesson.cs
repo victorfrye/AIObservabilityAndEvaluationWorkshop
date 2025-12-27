@@ -1,4 +1,3 @@
-using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -20,43 +19,36 @@ public class ReportGenerationLesson(
     IChatClient chatClient,
     IConfiguration configuration,
     ILogger<ReportGenerationLesson> logger,
-    IEvaluationResultStore resultStore) : ReportLessonBase(chatClient)
+    IEvaluationResultStore resultStore) : ReportLessonBase(chatClient, configuration)
 {
     protected override async Task<string> RunAsync(string message)
     {
         IEvaluator evaluator = new FluencyEvaluator();
         ReportingConfiguration reportConfig = new([evaluator], 
-            resultStore, 
-            GetChatConfiguration(), 
+            resultStore,
+            executionName: nameof(ReportGenerationLesson),
+            chatConfiguration: GetChatConfiguration(), 
             tags: ["CodeMash"]);
 
-        await GetResponseAndEvaluateAsync(message, scenarioName: "Fluency Check for Customer Service Reply", reportConfig);
+        ChatMessage[] messages =
+        [
+            new (ChatRole.System, "You are a helpful assistant providing information about products on a corporate website. Please be curteous and professional at all times."),
+            new (ChatRole.User, message)
+        ];
+        
+        await GetResponseAndEvaluateAsync(scenarioName: "Fluency Check for Customer Service Reply", reportConfig, messages);
 
-        IEnumerable<ScenarioRunResult> results = await GetLatestResultsAsync(reportConfig, count: 1);
+        IEnumerable<ScenarioRunResult> results = await GetLatestResultsAsync(reportConfig);
         
         string filename = GetReportFileName();
         logger.LogDebug("Using report filename {Filename}", filename);
         
-        // Get an asbolute path if this is a relative reference.
-        string path = configuration["ReportsPath"] ?? "Reports";
-        if (!Path.IsPathRooted(path))
-        {
-            path = Path.GetFullPath(path, Environment.CurrentDirectory);
-        }
-        path = Path.Combine(path, filename);
-        
+        string path = GetReportPath(filename);
         logger.LogDebug("Using report location {Path}", path);
 
         HtmlReportWriter writer = new(path);
         await writer.WriteReportAsync(results);
         
-        // Return the link in Markdown format
-        Uri uri = new Uri(path);
-        return $"""
-                ### Evaluation and Report Generation Complete
-
-                **Report location:**
-                [{uri.AbsoluteUri}]({uri.AbsoluteUri})
-                """;
+        return GetReportMarkdown(path);
     }
 }
