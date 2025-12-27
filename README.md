@@ -172,7 +172,9 @@ By default, evaluation reports are stored on your local disk in the `Reports` di
 
 This will be fine for the workshop and you don't need to worry about it in advance. However, if you'd like to see how to configure Azure storage, that's listed here as well.
 
-#### Azure Storage for Reporting (Optional)
+#### Azure Storage for Reporting (Highly Optional / Not Recommended)
+
+NOTE: This portion adds little value to the workshop and is intended for reference purposes later on.
 
 If you prefer, you can store reports in Azure Storage (Data Lake Gen2).
 
@@ -192,18 +194,20 @@ If you prefer, you can store reports in Azure Storage (Data Lake Gen2).
 **To use Azure Storage**: 
 
 1. Set `ReportStorageType` to `"azure"`.
-2. Set `AzureStorageConnectionString` to your storage account connection string.
+2. Set `AzureStorageDataLakeEndpoint` to your storage account's Data Lake Endpoint.
 3. Set `AzureStorageContainer` to your container name.
 
 ```json
 {
   "Parameters": {
     "ReportStorageType": "azure",
-    "AzureStorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=youraccount;AccountKey=yourkey;EndpointSuffix=core.windows.net",
+    "AzureStorageDataLakeEndpoint": "https://yourstorageaccount.dfs.core.windows.net/",
     "AzureStorageContainer": "your-container"
   }
 }
 ```
+
+You will need to have identity authentication enabled and the `Storage Blob Data Contributor` role assigned to your user for your storage account. See the identity authentication section for more details on this process. 
 
 ### Troubleshooting
 

@@ -15,7 +15,7 @@ var allowUntrustedCertificates = builder.AddParameter("AllowUntrustedCertificate
 var evaluationResultsPath = builder.AddParameter("EvaluationResultsPath", secret: false);
 var reportsPath = builder.AddParameter("ReportsPath", secret: false);
 var reportStorageType = builder.AddParameter("ReportStorageType", secret: false);
-var azureStorageConnectionString = builder.AddParameter("AzureStorageConnectionString", secret: true);
+var azureStorageEndpoint = builder.AddParameter("AzureStorageDataLakeEndpoint", secret: false);
 var azureStorageContainer = builder.AddParameter("AzureStorageContainer", secret: false);
 
 var ollama = builder.AddOllama("ollama")
@@ -41,7 +41,7 @@ builder.AddProject<AIObservabilityAndEvaluationWorkshop_ConsoleRunner>("console-
     .WithEnvironment("EvaluationResultsPath", evaluationResultsPath)
     .WithEnvironment("ReportsPath", reportsPath)
     .WithEnvironment("ReportStorageType", reportStorageType)
-    .WithEnvironment("AzureStorageConnectionString", azureStorageConnectionString)
+    .WithEnvironment("AzureStorageDataLakeEndpoint", azureStorageEndpoint)
     .WithEnvironment("AzureStorageContainer", azureStorageContainer)
     .WithExplicitStart()
     .WithArgs(context => handler.ConfigureArgs(context.Args))

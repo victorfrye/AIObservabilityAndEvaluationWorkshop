@@ -67,8 +67,8 @@ This file contains tasks left for constructing the workshop.
 
 ## Reporting
 
-- [ ] Get Azure Storage working (Stretch)
+- [x] Get Azure Storage working (Stretch)
 - [x] Multiple evaluators in a report
 - [x] Trends over time
-- [ ] Model Selection
 - [ ] Prompt Selection
+- [ ] Model Selection (Stretch)
