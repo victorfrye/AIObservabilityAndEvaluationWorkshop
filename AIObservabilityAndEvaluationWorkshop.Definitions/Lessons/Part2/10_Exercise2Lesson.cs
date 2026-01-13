@@ -6,9 +6,10 @@ using Microsoft.Extensions.Logging;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 25, "EXERCISE 2", needsInput: true,
+[Lesson(2, 10, "EXERCISE 2", needsInput: true,
     informationalScreenTitle: "Exercise 2",
-    informationalScreenMessage: "This is an exercise lesson. Apply what you've learned about evaluators in the previous lessons to complete this exercise.",
+    informationalScreenMessage:
+    "This is an exercise lesson. Apply what you've learned about evaluators in the previous lessons to complete this exercise.",
     inputPromptMessage: "The user is asking 'What does your organization do?':",
     inputPromptTitle: "What does your bot say?")]
 public class Exercise2Lesson(ILogger<Exercise2Lesson> logger, IChatClient chatClient) : EvaluatorLessonBase(logger)

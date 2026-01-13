@@ -3,9 +3,10 @@ using JetBrains.Annotations;
 namespace AIObservabilityAndEvaluationWorkshop.Definitions.Lessons;
 
 [UsedImplicitly]
-[Lesson(2, 25, "EXERCISE 3", needsInput: true,
+[Lesson(2, 21, "EXERCISE 3", needsInput: true,
     informationalScreenTitle: "Exercise 3",
-    informationalScreenMessage: "This is an exercise lesson. Apply what you've learned about evaluators in the previous lessons to complete this exercise.",
+    informationalScreenMessage:
+    "This is an exercise lesson. Apply what you've learned about evaluators in the previous lessons to complete this exercise.",
     inputPromptTitle: "Exercise 3 - Input",
     inputPromptMessage: "Enter your input for Exercise 3:")]
 public class Exercise3Lesson : LessonBase
